@@ -67,8 +67,9 @@ MIDJOURNEY_API_KEY=your_midjourney_key_here
 RUNWAY_API_KEY=your_runway_key_here
 ELEVENLABS_API_KEY=your_elevenlabs_key_here
 
-# Database
-DATABASE_URL=sqlite:///./video_studio.db
+# Supabase
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
 
 # File Storage
 UPLOAD_DIR=uploads
@@ -77,6 +78,13 @@ MAX_FILE_SIZE=104857600  # 100MB
 # CORS Settings (adjust for your frontend URL)
 ALLOWED_HOSTS=["http://localhost:3000","http://localhost:5173","http://localhost:8080"]
 ```
+
+### Supabase Setup
+
+1. Create a Supabase account at https://supabase.com
+2. Create a new project
+3. Get your project URL and anon key from the project settings
+4. Add them to your `.env` file
 
 ## API Endpoints
 
@@ -203,7 +211,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ### Production Considerations
 
-1. **Database**: Switch from SQLite to PostgreSQL for production
+1. **Database**: Using Supabase (PostgreSQL) for production-ready database
 2. **File Storage**: Use cloud storage (AWS S3, Google Cloud Storage)
 3. **Caching**: Add Redis for caching and background tasks
 4. **Monitoring**: Add logging, metrics, and health checks

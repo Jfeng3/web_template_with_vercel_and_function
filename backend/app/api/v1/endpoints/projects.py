@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from app.models.schemas import Project, ProjectCreate, ProjectUpdate, ProjectStatus
+from app.services.database import db_service
 import uuid
 from datetime import datetime
 
 router = APIRouter()
 
-# Mock database - replace with actual database integration
+# Mock database - replace with Supabase when tables are created
 projects_db = {}
 
 @router.post("/", response_model=Project, status_code=status.HTTP_201_CREATED)

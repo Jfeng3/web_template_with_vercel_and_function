@@ -101,7 +101,8 @@ OPENAI_API_KEY=your_key_here
 MIDJOURNEY_API_KEY=your_key_here
 RUNWAY_API_KEY=your_key_here
 ELEVENLABS_API_KEY=your_key_here
-DATABASE_URL=sqlite:///./video_studio.db
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
 ALLOWED_HOSTS=["http://localhost:8080"]
 ```
 

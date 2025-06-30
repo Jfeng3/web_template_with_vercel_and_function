@@ -22,8 +22,9 @@ class Settings(BaseSettings):
     RUNWAY_API_KEY: Optional[str] = None
     ELEVENLABS_API_KEY: Optional[str] = None
     
-    # Database settings
-    DATABASE_URL: str = "sqlite:///./video_studio.db"
+    # Supabase settings
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
     
     # File storage settings
     UPLOAD_DIR: str = "uploads"
