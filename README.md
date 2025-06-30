@@ -1,73 +1,50 @@
-# Welcome to your Lovable project
+# Video Creation Studio
 
-## Project info
+A simple video creation tool with AI integration.
 
-**URL**: https://lovable.dev/projects/53548a92-4028-42bc-bc5a-1df2c8c4df0f
+## Quick Start
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/53548a92-4028-42bc-bc5a-1df2c8c4df0f) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & pnpm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-pnpm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Frontend
+```bash
+pnpm install
 pnpm run dev
 ```
+Open http://localhost:8080
 
-**Edit a file directly in GitHub**
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+python run.py
+```
+API available at http://localhost:8000
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Features
 
-**Use GitHub Codespaces**
+- ✅ Create and manage projects
+- ✅ Upload media files
+- ✅ Generate AI content (images/videos)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Tech Stack
 
-## What technologies are used for this project?
+- Frontend: React, Vite, Tailwind CSS
+- Backend: FastAPI, Python
+- Database: Supabase (optional)
 
-This project is built with:
+## API Endpoints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `POST /projects` - Create project
+- `GET /projects` - List projects
+- `POST /upload` - Upload file
+- `POST /generate` - Start AI generation
+- `GET /generate/{id}` - Check generation status
 
-## How can I deploy this project?
+## Environment Setup
 
-Simply open [Lovable](https://lovable.dev/projects/53548a92-4028-42bc-bc5a-1df2c8c4df0f) and click on Share -> Publish.
+Create `backend/.env` file:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+That's it! Simple and straightforward.

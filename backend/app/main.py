@@ -1,48 +1,68 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from app.api.v1.router import api_router
-from app.core.config import settings
-import uvicorn
+from pydantic import BaseModel
+from typing import List, Optional
+import uuid
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    description="AI Video Creation Studio Backend API",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
-)
+app = FastAPI(title="Video Creation API", version="1.0.0")
 
-# Set up CORS
+# Simple CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_HOSTS,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routes
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# Simple data models
+class Project(BaseModel):
+    id: str
+    name: str
+    
+class AIRequest(BaseModel):
+    prompt: str
+    type: str  # "image" or "video"
 
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "service": "video-creation-backend"}
+# In-memory storage (simple)
+projects = {}
+generations = {}
 
-# Root endpoint
 @app.get("/")
-async def root():
-    return {
-        "message": "AI Video Creation Studio API",
-        "version": settings.VERSION,
-        "docs_url": "/docs"
+def root():
+    return {"message": "Video Creation API"}
+
+@app.post("/projects", response_model=Project)
+def create_project(name: str):
+    project_id = str(uuid.uuid4())
+    project = Project(id=project_id, name=name)
+    projects[project_id] = project
+    return project
+
+@app.get("/projects", response_model=List[Project])
+def list_projects():
+    return list(projects.values())
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    return {"filename": file.filename, "size": file.size}
+
+@app.post("/generate")
+def generate_ai_content(request: AIRequest):
+    generation_id = str(uuid.uuid4())
+    generations[generation_id] = {
+        "id": generation_id,
+        "status": "processing",
+        "prompt": request.prompt,
+        "type": request.type
     }
+    return {"id": generation_id, "status": "processing"}
+
+@app.get("/generate/{generation_id}")
+def get_generation_status(generation_id: str):
+    if generation_id not in generations:
+        raise HTTPException(status_code=404, detail="Generation not found")
+    return generations[generation_id]
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
