@@ -43,7 +43,7 @@ FastAPI backend for the AI Video Creation Studio, providing REST APIs for video 
 
 5. **Run the server**:
    ```bash
-   python -m app.main
+   python run.py
    # or
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
