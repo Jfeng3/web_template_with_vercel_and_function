@@ -1,11 +1,23 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { ChatSidebar } from '@/components/ChatSidebar';
+import { VideoEditor } from '@/components/VideoEditor';
+import { Toolbar } from '@/components/Toolbar';
 
 const Index = () => {
+  const [isChatOpen, setIsChatOpen] = useState(true);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-900 flex">
+      {/* Chat Sidebar */}
+      <div className={`transition-all duration-300 ${isChatOpen ? 'w-80' : 'w-0'} overflow-hidden`}>
+        <ChatSidebar isOpen={isChatOpen} onToggle={() => setIsChatOpen(!isChatOpen)} />
+      </div>
+
+      {/* Main Video Editor Area */}
+      <div className="flex-1 flex flex-col">
+        <Toolbar isChatOpen={isChatOpen} onToggleChat={() => setIsChatOpen(!isChatOpen)} />
+        <VideoEditor />
       </div>
     </div>
   );
