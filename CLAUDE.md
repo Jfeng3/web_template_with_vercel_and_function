@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IMPORTANT: Simplified Version Active
+
+The project has been simplified. Use the simple versions:
+- Frontend: `src/AppSimple.tsx`
+- Backend: `backend/app/main_simple.py`
+- Run with: `python backend/run_simple.py`
+
 ## Project Overview
 
 This is an AI Video Creation Studio - a monorepo containing a React frontend and FastAPI backend for creating videos with AI assistance from multiple providers (Midjourney, Veo3, OpenAI, Runway, ElevenLabs).
