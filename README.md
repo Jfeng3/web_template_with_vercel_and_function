@@ -47,4 +47,6 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 ```
 
+For MCP setup, please check local video-talk-scribe folder on Mac's .mcp.json file.
+
 That's it! Simple and straightforward.
