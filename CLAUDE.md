@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Simple Video Creation Studio - A minimal React + FastAPI application for creating videos with AI.
 
+# Development Instructions
+
+implment minimal changes, don't over engineering
+
 ## Development Commands
 
 ### Frontend
@@ -52,4 +56,3 @@ python run.py  # Port 8000
 1. **Keep it simple** - No over-engineering
 2. **Minimal changes** - Only implement what's requested
 3. **No complex abstractions** - Direct, straightforward code
-4. **In-memory storage** - No complex database setup required
