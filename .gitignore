@@ -26,3 +26,5 @@ venv/*
 *.sln
 *.sw?
 .vercel
+.env
+.env.local
