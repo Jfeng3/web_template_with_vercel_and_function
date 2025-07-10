@@ -91,3 +91,28 @@ export const tags = pgTable('tags', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   email: text('email').default('jfeng1115@gmail.com'),
 });
+
+// Daily Notes Writer Tables
+export const notes = pgTable('notes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  tag: text('tag').notNull(),
+  status: text('status').notNull().default('draft'), // 'draft' | 'ready'
+  originalContent: text('original_content'), // For storing content before AI styling
+  wordCount: integer('word_count').notNull(),
+  userId: text('user_id'), // For future multi-user support
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+});
+
+export const weeklyTags = pgTable('weekly_tags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tag1: text('tag1').notNull(),
+  tag2: text('tag2').notNull(),
+  weekStart: timestamp('week_start', { withTimezone: true }).notNull(),
+  weekEnd: timestamp('week_end', { withTimezone: true }).notNull(),
+  userId: text('user_id'), // For future multi-user support
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

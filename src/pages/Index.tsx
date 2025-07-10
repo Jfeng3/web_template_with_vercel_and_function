@@ -1,27 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit3, Check, X } from 'lucide-react';
-
-interface Note {
-  id: string;
-  content: string;
-  tag: string;
-  status: 'draft' | 'ready';
-  createdAt: Date;
-  originalContent?: string;
-}
-
-interface WeeklyTags {
-  tag1: string;
-  tag2: string;
-  weekStart: Date;
-}
+import { notesApi, type Note, type WeeklyTags } from '../api/notes';
 
 export default function Index() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [weeklyTags, setWeeklyTags] = useState<WeeklyTags>({ 
+    id: '',
     tag1: 'productivity', 
     tag2: 'creativity',
-    weekStart: new Date()
+    weekStart: new Date(),
+    weekEnd: new Date()
   });
   const [isWriting, setIsWriting] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
@@ -30,11 +18,57 @@ export default function Index() {
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const [draggedNote, setDraggedNote] = useState<Note | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const words = currentNote.trim().split(/\s+/).filter(word => word.length > 0);
     setWordCount(words.length);
   }, [currentNote]);
+
+  // Load notes and weekly tags on mount
+  useEffect(() => {
+    loadNotes();
+    loadWeeklyTags();
+  }, []);
+
+  const loadNotes = async () => {
+    try {
+      setLoading(true);
+      const fetchedNotes = await notesApi.getAllNotes();
+      setNotes(fetchedNotes);
+    } catch (err) {
+      setError('Failed to load notes');
+      console.error('Error loading notes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadWeeklyTags = async () => {
+    try {
+      const tags = await notesApi.getCurrentWeeklyTags();
+      if (tags) {
+        setWeeklyTags(tags);
+      } else {
+        // Create default weekly tags
+        const now = new Date();
+        const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        
+        const newTags = await notesApi.createWeeklyTags({
+          tag1: 'productivity',
+          tag2: 'creativity',
+          weekStart,
+          weekEnd
+        });
+        setWeeklyTags(newTags);
+      }
+    } catch (err) {
+      console.error('Error loading weekly tags:', err);
+    }
+  };
 
   const handleNewNote = () => {
     setIsWriting(true);
@@ -42,18 +76,26 @@ export default function Index() {
     setSelectedTag(weeklyTags.tag1);
   };
 
-  const handleSaveNote = () => {
+  const handleSaveNote = async () => {
     if (currentNote.trim() && selectedTag && wordCount <= 300) {
-      const newNote: Note = {
-        id: Date.now().toString(),
-        content: currentNote,
-        tag: selectedTag,
-        status: 'draft',
-        createdAt: new Date()
-      };
-      setNotes([...notes, newNote]);
-      setIsWriting(false);
-      setCurrentNote('');
+      try {
+        setLoading(true);
+        const newNote = await notesApi.createNote({
+          content: currentNote,
+          tag: selectedTag,
+          status: 'draft',
+          wordCount
+        });
+        setNotes([...notes, newNote]);
+        setIsWriting(false);
+        setCurrentNote('');
+        setError(null);
+      } catch (err) {
+        setError('Failed to save note');
+        console.error('Error saving note:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -67,16 +109,28 @@ export default function Index() {
     }
   };
 
-  const handleUpdateNote = () => {
+  const handleUpdateNote = async () => {
     if (editingNote && wordCount <= 300) {
-      setNotes(notes.map(note => 
-        note.id === editingNote 
-          ? { ...note, content: currentNote, tag: selectedTag }
-          : note
-      ));
-      setEditingNote(null);
-      setIsWriting(false);
-      setCurrentNote('');
+      try {
+        setLoading(true);
+        const updatedNote = await notesApi.updateNote(editingNote, {
+          content: currentNote,
+          tag: selectedTag,
+          wordCount
+        });
+        setNotes(notes.map(note => 
+          note.id === editingNote ? updatedNote : note
+        ));
+        setEditingNote(null);
+        setIsWriting(false);
+        setCurrentNote('');
+        setError(null);
+      } catch (err) {
+        setError('Failed to update note');
+        console.error('Error updating note:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -88,15 +142,23 @@ export default function Index() {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, status: 'draft' | 'ready') => {
+  const handleDrop = async (e: React.DragEvent, status: 'draft' | 'ready') => {
     e.preventDefault();
     if (draggedNote) {
-      setNotes(notes.map(note => 
-        note.id === draggedNote.id 
-          ? { ...note, status }
-          : note
-      ));
-      setDraggedNote(null);
+      try {
+        setLoading(true);
+        const updatedNote = await notesApi.updateNote(draggedNote.id, { status });
+        setNotes(notes.map(note => 
+          note.id === draggedNote.id ? updatedNote : note
+        ));
+        setDraggedNote(null);
+        setError(null);
+      } catch (err) {
+        setError('Failed to update note status');
+        console.error('Error updating note status:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -115,7 +177,8 @@ export default function Index() {
             </div>
             <button
               onClick={handleNewNote}
-              className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 flex items-center gap-2"
+              disabled={loading}
+              className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-50"
             >
               <Plus size={16} />
               New Note
@@ -123,6 +186,21 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="px-8 py-4 max-w-6xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+            {error}
+            <button 
+              onClick={() => setError(null)}
+              className="ml-2 text-red-600 hover:text-red-800"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="px-8 py-8 max-w-6xl mx-auto">
@@ -170,10 +248,10 @@ export default function Index() {
                 </button>
                 <button
                   onClick={editingNote ? handleUpdateNote : handleSaveNote}
-                  disabled={wordCount > 300 || !currentNote.trim()}
+                  disabled={wordCount > 300 || !currentNote.trim() || loading}
                   className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50"
                 >
-                  {editingNote ? 'Update' : 'Save to Draft'}
+                  {loading ? 'Saving...' : editingNote ? 'Update' : 'Save to Draft'}
                 </button>
               </div>
             </div>
