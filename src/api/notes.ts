@@ -1,6 +1,4 @@
-import { db } from '../lib/db';
-import { notes, weeklyTags } from '../db/schema';
-import { eq, desc, and, gte } from 'drizzle-orm';
+import { supabase } from '../lib/db';
 
 export interface Note {
   id: string;
@@ -22,46 +20,56 @@ export interface WeeklyTags {
 
 export const notesApi = {
   async getAllNotes(userId?: string): Promise<Note[]> {
-    const result = await db
-      .select()
-      .from(notes)
-      .where(userId ? eq(notes.userId, userId) : undefined)
-      .orderBy(desc(notes.createdAt));
+    const query = supabase
+      .from('notes')
+      .select('*')
+      .order('created_at', { ascending: false });
     
-    return result.map(note => ({
+    if (userId) {
+      query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return (data || []).map(note => ({
       id: note.id,
       content: note.content,
       tag: note.tag,
       status: note.status as 'draft' | 'ready',
-      createdAt: note.createdAt,
-      originalContent: note.originalContent,
-      wordCount: note.wordCount
+      createdAt: new Date(note.created_at),
+      originalContent: note.original_content,
+      wordCount: note.word_count
     }));
   },
 
   async createNote(note: Omit<Note, 'id' | 'createdAt'> & { userId?: string }): Promise<Note> {
     const wordCount = note.content.trim().split(/\s+/).filter(word => word.length > 0).length;
     
-    const [result] = await db
-      .insert(notes)
-      .values({
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({
         content: note.content,
         tag: note.tag,
         status: note.status,
-        originalContent: note.originalContent,
-        wordCount: wordCount,
-        userId: note.userId
+        original_content: note.originalContent,
+        word_count: wordCount,
+        user_id: note.userId
       })
-      .returning();
+      .select()
+      .single();
+    
+    if (error) throw error;
     
     return {
-      id: result.id,
-      content: result.content,
-      tag: result.tag,
-      status: result.status as 'draft' | 'ready',
-      createdAt: result.createdAt,
-      originalContent: result.originalContent,
-      wordCount: result.wordCount
+      id: data.id,
+      content: data.content,
+      tag: data.tag,
+      status: data.status as 'draft' | 'ready',
+      createdAt: new Date(data.created_at),
+      originalContent: data.original_content,
+      wordCount: data.word_count
     };
   },
 
@@ -70,99 +78,118 @@ export const notesApi = {
       ? updates.content.trim().split(/\s+/).filter(word => word.length > 0).length
       : undefined;
     
-    const [result] = await db
-      .update(notes)
-      .set({
-        content: updates.content,
-        tag: updates.tag,
-        status: updates.status,
-        originalContent: updates.originalContent,
-        wordCount: wordCount,
-        updatedAt: new Date()
-      })
-      .where(eq(notes.id, id))
-      .returning();
+    const updateData: any = {};
+    if (updates.content !== undefined) updateData.content = updates.content;
+    if (updates.tag !== undefined) updateData.tag = updates.tag;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.originalContent !== undefined) updateData.original_content = updates.originalContent;
+    if (wordCount !== undefined) updateData.word_count = wordCount;
+    
+    const { data, error } = await supabase
+      .from('notes')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
     
     return {
-      id: result.id,
-      content: result.content,
-      tag: result.tag,
-      status: result.status as 'draft' | 'ready',
-      createdAt: result.createdAt,
-      originalContent: result.originalContent,
-      wordCount: result.wordCount
+      id: data.id,
+      content: data.content,
+      tag: data.tag,
+      status: data.status as 'draft' | 'ready',
+      createdAt: new Date(data.created_at),
+      originalContent: data.original_content,
+      wordCount: data.word_count
     };
   },
 
   async deleteNote(id: string): Promise<void> {
-    await db.delete(notes).where(eq(notes.id, id));
+    const { error } = await supabase
+      .from('notes')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
   },
 
   async getCurrentWeeklyTags(userId?: string): Promise<WeeklyTags | null> {
-    const now = new Date();
-    const result = await db
-      .select()
-      .from(weeklyTags)
-      .where(
-        and(
-          userId ? eq(weeklyTags.userId, userId) : undefined,
-          gte(weeklyTags.weekStart, new Date(now.setDate(now.getDate() - 7)))
-        )
-      )
-      .orderBy(desc(weeklyTags.weekStart))
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const query = supabase
+      .from('weekly_tags')
+      .select('*')
+      .gte('week_start', oneWeekAgo.toISOString())
+      .order('week_start', { ascending: false })
       .limit(1);
     
-    if (result.length === 0) return null;
+    if (userId) {
+      query.eq('user_id', userId);
+    }
     
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    if (!data || data.length === 0) return null;
+    
+    const result = data[0];
     return {
-      id: result[0].id,
-      tag1: result[0].tag1,
-      tag2: result[0].tag2,
-      weekStart: result[0].weekStart,
-      weekEnd: result[0].weekEnd
+      id: result.id,
+      tag1: result.tag1,
+      tag2: result.tag2,
+      weekStart: new Date(result.week_start),
+      weekEnd: new Date(result.week_end)
     };
   },
 
   async createWeeklyTags(tags: Omit<WeeklyTags, 'id'> & { userId?: string }): Promise<WeeklyTags> {
-    const [result] = await db
-      .insert(weeklyTags)
-      .values({
+    const { data, error } = await supabase
+      .from('weekly_tags')
+      .insert({
         tag1: tags.tag1,
         tag2: tags.tag2,
-        weekStart: tags.weekStart,
-        weekEnd: tags.weekEnd,
-        userId: tags.userId
+        week_start: tags.weekStart.toISOString(),
+        week_end: tags.weekEnd.toISOString(),
+        user_id: tags.userId
       })
-      .returning();
+      .select()
+      .single();
+    
+    if (error) throw error;
     
     return {
-      id: result.id,
-      tag1: result.tag1,
-      tag2: result.tag2,
-      weekStart: result.weekStart,
-      weekEnd: result.weekEnd
+      id: data.id,
+      tag1: data.tag1,
+      tag2: data.tag2,
+      weekStart: new Date(data.week_start),
+      weekEnd: new Date(data.week_end)
     };
   },
 
   async updateWeeklyTags(id: string, updates: Partial<WeeklyTags>): Promise<WeeklyTags> {
-    const [result] = await db
-      .update(weeklyTags)
-      .set({
-        tag1: updates.tag1,
-        tag2: updates.tag2,
-        weekStart: updates.weekStart,
-        weekEnd: updates.weekEnd,
-        updatedAt: new Date()
-      })
-      .where(eq(weeklyTags.id, id))
-      .returning();
+    const updateData: any = {};
+    if (updates.tag1 !== undefined) updateData.tag1 = updates.tag1;
+    if (updates.tag2 !== undefined) updateData.tag2 = updates.tag2;
+    if (updates.weekStart !== undefined) updateData.week_start = updates.weekStart.toISOString();
+    if (updates.weekEnd !== undefined) updateData.week_end = updates.weekEnd.toISOString();
+    
+    const { data, error } = await supabase
+      .from('weekly_tags')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
     
     return {
-      id: result.id,
-      tag1: result.tag1,
-      tag2: result.tag2,
-      weekStart: result.weekStart,
-      weekEnd: result.weekEnd
+      id: data.id,
+      tag1: data.tag1,
+      tag2: data.tag2,
+      weekStart: new Date(data.week_start),
+      weekEnd: new Date(data.week_end)
     };
   }
 };
