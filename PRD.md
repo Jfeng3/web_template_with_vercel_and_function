@@ -32,7 +32,7 @@ Content creators struggle to maintain consistent daily writing habits. Without a
    - Side-by-side or inline diff view options
    - Accept/reject individual changes
 
-3. **Weekly Focus System**
+5. **Weekly Focus System**
    - Select 2 tags at week start (e.g., "productivity", "creativity")
    - All notes must use one of the weekly tags
    - Tag selection resets every Monday
@@ -42,8 +42,10 @@ Content creators struggle to maintain consistent daily writing habits. Without a
 **Daily Writing (10 min):**
 1. Click "New Note" to start draft
 2. Write with live word count (max 300)
-3. Select tag from this week's two options
-4. Save to Draft column
+3. Click "Apply My Style" for AI enhancement
+4. Review diff and accept/reject changes
+5. Select tag from this week's two options
+6. Save to Draft column
 
 **Editing Flow:**
 - Click any draft to edit
