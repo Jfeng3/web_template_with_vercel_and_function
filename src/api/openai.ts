@@ -63,18 +63,19 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
       messages: [
         {
           role: 'system',
-          content: `You are a writing assistant that helps rephrase content to be more engaging and clear.
-          Keep the original meaning while improving:
-          - Clarity and readability
-          - Engagement and impact
-          - Flow and structure
-          - Conciseness (stay under 300 words)
+          content: `You are a writing assistant that helps rephrase content to be simple, clear, and conversational.
+          Keep the original meaning while making it:
+          - Simple: Use everyday language, avoid jargon
+          - Clear: Direct and easy to understand
+          - Conversational: Natural, like talking to a friend
+          - Concise: Stay under 300 words
           
-          Provide one main rephrased version and 2-3 alternative approaches.`
+          Write as if you're having a friendly chat. Use "you" and "we" when appropriate.
+          Avoid complex sentences. Keep it human and relatable.`
         },
         {
           role: 'user',
-          content: `Please rephrase this note to be more engaging:\n\n${content}`
+          content: `Please rephrase this note to be simple, clear and conversational:\n\n${content}`
         }
       ],
       max_tokens: 600,
