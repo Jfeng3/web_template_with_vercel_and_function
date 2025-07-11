@@ -6,6 +6,7 @@ export interface Note {
   tag: string;
   status: 'draft' | 'ready';
   createdAt: Date;
+  updatedAt: Date;
   originalContent?: string | null;
   wordCount: number;
 }
@@ -39,12 +40,13 @@ export const notesApi = {
       tag: note.tag,
       status: note.status as 'draft' | 'ready',
       createdAt: new Date(note.created_at),
+      updatedAt: new Date(note.updated_at),
       originalContent: note.original_content,
       wordCount: note.word_count
     }));
   },
 
-  async createNote(note: Omit<Note, 'id' | 'createdAt'> & { userId?: string }): Promise<Note> {
+  async createNote(note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'> & { userId?: string }): Promise<Note> {
     const wordCount = note.content.trim().split(/\s+/).filter(word => word.length > 0).length;
     
     const { data, error } = await supabase
@@ -68,6 +70,7 @@ export const notesApi = {
       tag: data.tag,
       status: data.status as 'draft' | 'ready',
       createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
       originalContent: data.original_content,
       wordCount: data.word_count
     };
@@ -100,6 +103,7 @@ export const notesApi = {
       tag: data.tag,
       status: data.status as 'draft' | 'ready',
       createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
       originalContent: data.original_content,
       wordCount: data.word_count
     };

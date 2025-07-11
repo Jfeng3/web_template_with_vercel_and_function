@@ -30,7 +30,13 @@ export default function Sidebar({
     const activityMap = new Map<string, number>();
     
     readyNotes.forEach(note => {
+      // Ensure we have a valid date
+      if (!note.updatedAt) return;
+      
       const date = new Date(note.updatedAt);
+      // Check if date is valid
+      if (isNaN(date.getTime())) return;
+      
       date.setHours(0, 0, 0, 0);
       const key = date.toISOString().split('T')[0];
       activityMap.set(key, (activityMap.get(key) || 0) + 1);
