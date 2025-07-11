@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Edit3, Check } from 'lucide-react';
 import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
+import AIAssistantButtons from '../components/AIAssistantButtons';
+import AIResponseModal from '../components/AIResponseModal';
+import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 
 export default function Index() {
   const {
@@ -33,6 +36,12 @@ export default function Index() {
     setError,
     filteredNotes
   } = useNotesStore();
+
+  // AI Assistant state
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiModalType, setAiModalType] = useState<'critic' | 'rephrase'>('critic');
+  const [aiResponse, setAiResponse] = useState<any>({});
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Load notes and weekly tags on mount
   useEffect(() => {
@@ -90,6 +99,47 @@ export default function Index() {
       await updateNote(draggedNote.id, { status });
       setDraggedNote(null);
     }
+  };
+
+  const handleCritic = async () => {
+    if (!currentNote.trim()) return;
+    
+    setAiLoading(true);
+    setAiModalType('critic');
+    setAiModalOpen(true);
+    
+    try {
+      const response = await getCriticFeedback(currentNote);
+      setAiResponse(response);
+    } catch (error) {
+      setError('Failed to get AI feedback. Please try again.');
+      setAiModalOpen(false);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleRephrase = async () => {
+    if (!currentNote.trim()) return;
+    
+    setAiLoading(true);
+    setAiModalType('rephrase');
+    setAiModalOpen(true);
+    
+    try {
+      const response = await getRephraseOptions(currentNote);
+      setAiResponse(response);
+    } catch (error) {
+      setError('Failed to get AI rephrase options. Please try again.');
+      setAiModalOpen(false);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleApplyRephrase = (content: string) => {
+    setCurrentNote(content);
+    setAiModalOpen(false);
   };
 
   // Apply filters
@@ -180,9 +230,17 @@ export default function Index() {
                 <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
                   {wordCount}/300 words
                 </div>
-                <button className="text-black border border-[#E5E5EA] rounded-lg px-3 py-1 text-sm hover:bg-[#fffef9]">
-                  Apply My Style
-                </button>
+                <div className="flex items-center gap-2">
+                  <AIAssistantButtons
+                    onCritic={handleCritic}
+                    onRephrase={handleRephrase}
+                    disabled={!currentNote.trim()}
+                    isLoading={aiLoading}
+                  />
+                  <button className="text-black border border-[#E5E5EA] rounded-lg px-3 py-1 text-sm hover:bg-[#fffef9]">
+                    Apply My Style
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -305,6 +363,16 @@ export default function Index() {
         </div>
       </div>
       </div>
+
+      {/* AI Response Modal */}
+      <AIResponseModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        type={aiModalType}
+        response={aiResponse}
+        onApply={handleApplyRephrase}
+        isLoading={aiLoading}
+      />
     </div>
   );
 }
