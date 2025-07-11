@@ -70,7 +70,8 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
           - Conversational: Natural, like talking to a friend
           - Concise: Stay under 300 words
           
-          Write as if you're having a friendly chat. Use "you" and "we" when appropriate.
+          Write as if you're having a friendly chat. Use "you" and "we" when appropriate. 
+          If the original content is Chinese, please translate it to English first.
           Avoid complex sentences. Keep it human and relatable.`
         },
         {
