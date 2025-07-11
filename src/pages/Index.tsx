@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit3, Check, X } from 'lucide-react';
 import { notesApi, type Note, type WeeklyTags } from '../api/notes';
+import Sidebar from '../components/Sidebar';
 
 export default function Index() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -16,10 +17,12 @@ export default function Index() {
   const [selectedTag, setSelectedTag] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [editingNote, setEditingNote] = useState<string | null>(null);
-  const [showDiff, setShowDiff] = useState(false);
   const [draggedNote, setDraggedNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'ready'>('all');
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const words = currentNote.trim().split(/\s+/).filter(word => word.length > 0);
@@ -134,7 +137,7 @@ export default function Index() {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, note: Note) => {
+  const handleDragStart = (_e: React.DragEvent, note: Note) => {
     setDraggedNote(note);
   };
 
@@ -162,12 +165,34 @@ export default function Index() {
     }
   };
 
-  const draftNotes = notes.filter(n => n.status === 'draft');
-  const readyNotes = notes.filter(n => n.status === 'ready');
+  // Apply filters
+  let filteredNotes = notes;
+  if (filterStatus !== 'all') {
+    filteredNotes = filteredNotes.filter(n => n.status === filterStatus);
+  }
+  if (filterTag) {
+    filteredNotes = filteredNotes.filter(n => n.tag === filterTag);
+  }
+  
+  const draftNotes = filteredNotes.filter(n => n.status === 'draft');
+  const readyNotes = filteredNotes.filter(n => n.status === 'ready');
 
   return (
-    <div className="min-h-screen bg-[#fffef9]">
-      {/* Header */}
+    <div className="min-h-screen bg-[#fffef9] flex">
+      {/* Sidebar */}
+      <Sidebar
+        notes={notes}
+        filterStatus={filterStatus}
+        onFilterChange={setFilterStatus}
+        selectedTag={filterTag}
+        onTagSelect={setFilterTag}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      
+      {/* Main Content */}
+      <div className="flex-1">
+        {/* Header */}
       <div className="sticky top-0 bg-white border-b border-[#E5E5EA] px-8 py-6 z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-black">Daily Notes Writer</h1>
@@ -175,6 +200,31 @@ export default function Index() {
             <div className="text-sm text-[#71717A]">
               Week Focus: <span className="font-medium text-black">{weeklyTags.tag1}</span> & <span className="font-medium text-black">{weeklyTags.tag2}</span>
             </div>
+            {/* Filter indicator */}
+            {(filterStatus !== 'all' || filterTag) && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[#71717A]">Filtering:</span>
+                {filterStatus !== 'all' && (
+                  <span className="text-xs bg-[#fffef9] text-black px-2 py-1 rounded">
+                    {filterStatus}
+                  </span>
+                )}
+                {filterTag && (
+                  <span className="text-xs bg-[#fffef9] text-black px-2 py-1 rounded">
+                    #{filterTag}
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    setFilterStatus('all');
+                    setFilterTag(null);
+                  }}
+                  className="text-xs text-[#71717A] hover:text-black"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
             <button
               onClick={handleNewNote}
               disabled={loading}
@@ -344,6 +394,7 @@ export default function Index() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
