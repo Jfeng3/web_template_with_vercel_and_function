@@ -41,9 +41,9 @@ export default function Index() {
   }, [loadNotes, loadWeeklyTags]);
 
   const handleNewNote = () => {
-    setIsWriting(true);
     setCurrentNote('');
     setSelectedTag(weeklyTags.tag1);
+    setEditingNote(null);
   };
 
   const handleSaveNote = async () => {
@@ -63,7 +63,6 @@ export default function Index() {
       setEditingNote(noteId);
       setCurrentNote(note.content);
       setSelectedTag(note.tag);
-      setIsWriting(true);
     }
   };
 
@@ -144,7 +143,7 @@ export default function Index() {
               className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-50"
             >
               <Plus size={16} />
-              New Note
+              Clear Form
             </button>
           </div>
         </div>
@@ -168,8 +167,7 @@ export default function Index() {
       {/* Main Content */}
       <div className="px-8 py-8 max-w-6xl mx-auto">
         {/* Writing Panel */}
-        {isWriting && (
-          <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6 mb-8">
             <div className="mb-4">
               <textarea
                 value={currentNote}
@@ -201,13 +199,12 @@ export default function Index() {
               <div className="flex gap-2 ml-auto">
                 <button
                   onClick={() => {
-                    setIsWriting(false);
                     setEditingNote(null);
                     setCurrentNote('');
                   }}
                   className="text-black border border-[#E5E5EA] rounded-lg px-4 py-2 hover:bg-[#fffef9]"
                 >
-                  Cancel
+                  Clear
                 </button>
                 <button
                   onClick={editingNote ? handleUpdateNote : handleSaveNote}
@@ -219,7 +216,6 @@ export default function Index() {
               </div>
             </div>
           </div>
-        )}
 
         {/* Two-Stage Board */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
