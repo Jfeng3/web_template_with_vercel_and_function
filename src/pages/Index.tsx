@@ -1,77 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit3, Check, X } from 'lucide-react';
-import { notesApi, type Note, type WeeklyTags } from '../api/notes';
+import React, { useEffect } from 'react';
+import { Plus, Edit3, Check } from 'lucide-react';
+import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 
 export default function Index() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [weeklyTags, setWeeklyTags] = useState<WeeklyTags>({ 
-    id: '',
-    tag1: 'productivity', 
-    tag2: 'creativity',
-    weekStart: new Date(),
-    weekEnd: new Date()
-  });
-  const [isWriting, setIsWriting] = useState(false);
-  const [currentNote, setCurrentNote] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [wordCount, setWordCount] = useState(0);
-  const [editingNote, setEditingNote] = useState<string | null>(null);
-  const [draggedNote, setDraggedNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'ready'>('all');
-  const [filterTag, setFilterTag] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    const words = currentNote.trim().split(/\s+/).filter(word => word.length > 0);
-    setWordCount(words.length);
-  }, [currentNote]);
+  const {
+    notes,
+    weeklyTags,
+    isWriting,
+    currentNote,
+    selectedTag,
+    wordCount,
+    editingNote,
+    draggedNote,
+    loading,
+    error,
+    filterStatus,
+    filterTag,
+    sidebarCollapsed,
+    loadNotes,
+    loadWeeklyTags,
+    createNote,
+    updateNote,
+    setIsWriting,
+    setCurrentNote,
+    setSelectedTag,
+    setEditingNote,
+    setDraggedNote,
+    setFilterStatus,
+    setFilterTag,
+    setSidebarCollapsed,
+    setError,
+    filteredNotes
+  } = useNotesStore();
 
   // Load notes and weekly tags on mount
   useEffect(() => {
     loadNotes();
     loadWeeklyTags();
-  }, []);
-
-  const loadNotes = async () => {
-    try {
-      setLoading(true);
-      const fetchedNotes = await notesApi.getAllNotes();
-      setNotes(fetchedNotes);
-    } catch (err) {
-      setError('Failed to load notes');
-      console.error('Error loading notes:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWeeklyTags = async () => {
-    try {
-      const tags = await notesApi.getCurrentWeeklyTags();
-      if (tags) {
-        setWeeklyTags(tags);
-      } else {
-        // Create default weekly tags
-        const now = new Date();
-        const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        
-        const newTags = await notesApi.createWeeklyTags({
-          tag1: 'productivity',
-          tag2: 'creativity',
-          weekStart,
-          weekEnd
-        });
-        setWeeklyTags(newTags);
-      }
-    } catch (err) {
-      console.error('Error loading weekly tags:', err);
-    }
-  };
+  }, [loadNotes, loadWeeklyTags]);
 
   const handleNewNote = () => {
     setIsWriting(true);
@@ -81,24 +48,12 @@ export default function Index() {
 
   const handleSaveNote = async () => {
     if (currentNote.trim() && selectedTag && wordCount <= 300) {
-      try {
-        setLoading(true);
-        const newNote = await notesApi.createNote({
-          content: currentNote,
-          tag: selectedTag,
-          status: 'draft',
-          wordCount
-        });
-        setNotes([...notes, newNote]);
-        setIsWriting(false);
-        setCurrentNote('');
-        setError(null);
-      } catch (err) {
-        setError('Failed to save note');
-        console.error('Error saving note:', err);
-      } finally {
-        setLoading(false);
-      }
+      await createNote({
+        content: currentNote,
+        tag: selectedTag,
+        status: 'draft',
+        wordCount
+      });
     }
   };
 
@@ -114,30 +69,15 @@ export default function Index() {
 
   const handleUpdateNote = async () => {
     if (editingNote && wordCount <= 300) {
-      try {
-        setLoading(true);
-        const updatedNote = await notesApi.updateNote(editingNote, {
-          content: currentNote,
-          tag: selectedTag,
-          wordCount
-        });
-        setNotes(notes.map(note => 
-          note.id === editingNote ? updatedNote : note
-        ));
-        setEditingNote(null);
-        setIsWriting(false);
-        setCurrentNote('');
-        setError(null);
-      } catch (err) {
-        setError('Failed to update note');
-        console.error('Error updating note:', err);
-      } finally {
-        setLoading(false);
-      }
+      await updateNote(editingNote, {
+        content: currentNote,
+        tag: selectedTag,
+        wordCount
+      });
     }
   };
 
-  const handleDragStart = (_e: React.DragEvent, note: Note) => {
+  const handleDragStart = (_e: React.DragEvent, note: any) => {
     setDraggedNote(note);
   };
 
@@ -148,47 +88,20 @@ export default function Index() {
   const handleDrop = async (e: React.DragEvent, status: 'draft' | 'ready') => {
     e.preventDefault();
     if (draggedNote) {
-      try {
-        setLoading(true);
-        const updatedNote = await notesApi.updateNote(draggedNote.id, { status });
-        setNotes(notes.map(note => 
-          note.id === draggedNote.id ? updatedNote : note
-        ));
-        setDraggedNote(null);
-        setError(null);
-      } catch (err) {
-        setError('Failed to update note status');
-        console.error('Error updating note status:', err);
-      } finally {
-        setLoading(false);
-      }
+      await updateNote(draggedNote.id, { status });
+      setDraggedNote(null);
     }
   };
 
   // Apply filters
-  let filteredNotes = notes;
-  if (filterStatus !== 'all') {
-    filteredNotes = filteredNotes.filter(n => n.status === filterStatus);
-  }
-  if (filterTag) {
-    filteredNotes = filteredNotes.filter(n => n.tag === filterTag);
-  }
-  
-  const draftNotes = filteredNotes.filter(n => n.status === 'draft');
-  const readyNotes = filteredNotes.filter(n => n.status === 'ready');
+  const filtered = filteredNotes();
+  const draftNotes = filtered.filter(n => n.status === 'draft');
+  const readyNotes = filtered.filter(n => n.status === 'ready');
 
   return (
     <div className="min-h-screen bg-[#fffef9] flex">
       {/* Sidebar */}
-      <Sidebar
-        notes={notes}
-        filterStatus={filterStatus}
-        onFilterChange={setFilterStatus}
-        selectedTag={filterTag}
-        onTagSelect={setFilterTag}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+      <Sidebar />
       
       {/* Main Content */}
       <div className="flex-1">

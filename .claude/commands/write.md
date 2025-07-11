@@ -1,0 +1,1 @@
+Write about what we did to `ai_docs/discussions/currenttime.md`, where currenttime is YYYYMMDDHHMM - date and time all together without any separators. Use `date "+%Y%m%d%H%M"` terminal command to get currenttime.

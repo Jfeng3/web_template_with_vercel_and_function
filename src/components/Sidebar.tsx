@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ActivityHeatmap from './ActivityHeatmap';
-import { Note } from '../api/notes';
+import { useNotesStore } from '../stores/notesStore';
 
-interface SidebarProps {
-  notes: Note[];
-  filterStatus: 'all' | 'draft' | 'ready';
-  onFilterChange: (filter: 'all' | 'draft' | 'ready') => void;
-  selectedTag: string | null;
-  onTagSelect: (tag: string | null) => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-}
+export default function Sidebar() {
+  const {
+    notes,
+    filterStatus,
+    filterTag,
+    sidebarCollapsed,
+    setFilterStatus,
+    setFilterTag,
+    setSidebarCollapsed
+  } = useNotesStore();
 
-export default function Sidebar({
-  notes,
-  filterStatus,
-  onFilterChange,
-  selectedTag,
-  onTagSelect,
-  isCollapsed,
-  onToggleCollapse
-}: SidebarProps) {
   const [activityData, setActivityData] = useState<{ date: Date; count: number }[]>([]);
   
   // Calculate activity data from ready notes
@@ -62,11 +54,11 @@ export default function Sidebar({
   const draftCount = notes.filter(n => n.status === 'draft').length;
   const readyCount = notes.filter(n => n.status === 'ready').length;
   
-  if (isCollapsed) {
+  if (sidebarCollapsed) {
     return (
       <div className="bg-white border-r border-[#E5E5EA] w-12 flex flex-col items-center py-4">
         <button
-          onClick={onToggleCollapse}
+          onClick={() => setSidebarCollapsed(false)}
           className="text-[#71717A] hover:text-black p-2"
         >
           <ChevronRight size={16} />
@@ -81,7 +73,7 @@ export default function Sidebar({
       <div className="p-4 border-b border-[#E5E5EA] flex items-center justify-between">
         <h2 className="font-semibold text-black">Navigation</h2>
         <button
-          onClick={onToggleCollapse}
+          onClick={() => setSidebarCollapsed(true)}
           className="text-[#71717A] hover:text-black p-1"
         >
           <ChevronLeft size={16} />
@@ -102,7 +94,7 @@ export default function Sidebar({
           <h3 className="text-sm font-medium text-black mb-3">Notes</h3>
           <div className="space-y-2">
             <button
-              onClick={() => onFilterChange('draft')}
+              onClick={() => setFilterStatus('draft')}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between
                 ${filterStatus === 'draft' ? 'bg-[#fffef9] text-black font-medium' : 'text-[#71717A] hover:bg-[#fffef9]'}`}
             >
@@ -110,7 +102,7 @@ export default function Sidebar({
               <span className="text-xs">{draftCount}</span>
             </button>
             <button
-              onClick={() => onFilterChange('ready')}
+              onClick={() => setFilterStatus('ready')}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between
                 ${filterStatus === 'ready' ? 'bg-[#fffef9] text-black font-medium' : 'text-[#71717A] hover:bg-[#fffef9]'}`}
             >
@@ -127,9 +119,9 @@ export default function Sidebar({
             {allTags.map(([tag, count]) => (
               <button
                 key={tag}
-                onClick={() => onTagSelect(selectedTag === tag ? null : tag)}
+                onClick={() => setFilterTag(filterTag === tag ? null : tag)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between
-                  ${selectedTag === tag ? 'bg-[#fffef9] text-black font-medium' : 'text-[#71717A] hover:bg-[#fffef9]'}`}
+                  ${filterTag === tag ? 'bg-[#fffef9] text-black font-medium' : 'text-[#71717A] hover:bg-[#fffef9]'}`}
               >
                 <span>#{tag}</span>
                 <span className="text-xs">({count})</span>
