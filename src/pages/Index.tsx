@@ -56,10 +56,12 @@ export default function Index() {
   };
 
   const handleSaveNote = async () => {
-    if (currentNote.trim() && selectedTag && wordCount <= 300) {
+
+    if (currentNote.trim() && wordCount <= 300) {
+      console.log('createNote', currentNote, selectedTag, wordCount);
       await createNote({
         content: currentNote,
-        tag: selectedTag,
+        tag: selectedTag || weeklyTags.tag1,
         status: 'draft',
         wordCount
       });
@@ -265,7 +267,19 @@ export default function Index() {
                   Clear
                 </button>
                 <button
-                  onClick={editingNote ? handleUpdateNote : handleSaveNote}
+                  onClick={() => {
+                    console.log('Button clicked - editingNote:', editingNote);
+                    console.log('Current note:', currentNote);
+                    console.log('Selected tag:', selectedTag);
+                    console.log('Word count:', wordCount);
+                    if (editingNote) {
+                      console.log('>>> Calling handleUpdateNote');
+                      handleUpdateNote();
+                    } else {
+                      console.log('>>> Calling handleSaveNote');
+                      handleSaveNote();
+                    }
+                  }}
                   disabled={wordCount > 300 || !currentNote.trim() || loading}
                   className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50"
                 >

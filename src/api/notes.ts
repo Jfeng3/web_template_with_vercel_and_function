@@ -47,6 +47,7 @@ export const notesApi = {
   },
 
   async createNote(note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'> & { userId?: string }): Promise<Note> {
+    console.log('createNote', note);
     const wordCount = note.content.trim().split(/\s+/).filter(word => word.length > 0).length;
     
     const { data, error } = await supabase
