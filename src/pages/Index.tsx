@@ -4,6 +4,7 @@ import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIAssistantButtons from '../components/AIAssistantButtons';
 import AIResponseModal from '../components/AIResponseModal';
+import { HashtagTextarea } from '../components/HashtagTextarea';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 
 export default function Index() {
@@ -221,11 +222,10 @@ export default function Index() {
         {/* Writing Panel */}
         <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6 mb-8">
             <div className="mb-4">
-              <textarea
+              <HashtagTextarea
                 value={currentNote}
-                onChange={(e) => setCurrentNote(e.target.value)}
+                onChange={setCurrentNote}
                 placeholder="Start writing your note..."
-                className="w-full px-4 py-3 border border-[#E5E5EA] rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none h-32"
                 maxLength={1500}
               />
               <div className="flex justify-between items-center mt-2">
