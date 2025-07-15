@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface AIAssistantButtonsProps {
   onCritic: () => void;
@@ -28,31 +29,33 @@ export default function AIAssistantButtons({
 
   return (
     <div className="flex gap-2">
-      <button
+      <Button
         onClick={handleCritic}
         disabled={disabled || isLoading}
-        className="flex items-center gap-2 text-black border border-[#E5E5EA] rounded-lg px-3 py-2 text-sm hover:bg-[#fffef9] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        variant="outline"
+        size="sm"
       >
         {isLoading && activeAction === 'critic' ? (
-          <Loader2 size={16} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin mr-2" />
         ) : (
-          <MessageCircle size={16} />
+          <MessageCircle size={16} className="mr-2" />
         )}
         Critic
-      </button>
+      </Button>
       
-      <button
+      <Button
         onClick={handleRephrase}
         disabled={disabled || isLoading}
-        className="flex items-center gap-2 text-black border border-[#E5E5EA] rounded-lg px-3 py-2 text-sm hover:bg-[#fffef9] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        variant="outline"
+        size="sm"
       >
         {isLoading && activeAction === 'rephrase' ? (
-          <Loader2 size={16} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin mr-2" />
         ) : (
-          <RefreshCw size={16} />
+          <RefreshCw size={16} className="mr-2" />
         )}
         Rephrase
-      </button>
+      </Button>
     </div>
   );
 }

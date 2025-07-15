@@ -6,6 +6,11 @@ import AIAssistantButtons from '../components/AIAssistantButtons';
 import AIResponseModal from '../components/AIResponseModal';
 import { HashtagTextarea } from '../components/HashtagTextarea';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Badge } from '../components/ui/badge';
+import { Alert, AlertDescription } from '../components/ui/alert';
 
 export default function Index() {
   const {
@@ -190,14 +195,15 @@ export default function Index() {
                 </button>
               </div>
             )}
-            <button
+            <Button
               onClick={handleNewNote}
               disabled={loading}
-              className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-50"
+              variant="default"
+              size="default"
             >
-              <Plus size={16} />
+              <Plus size={16} className="mr-2" />
               Clear Form
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -205,22 +211,25 @@ export default function Index() {
       {/* Error Message */}
       {error && (
         <div className="px-8 py-4 max-w-6xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-            {error}
-            <button 
-              onClick={() => setError(null)}
-              className="ml-2 text-red-600 hover:text-red-800"
-            >
-              ×
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription className="flex items-center justify-between">
+              {error}
+              <button 
+                onClick={() => setError(null)}
+                className="ml-2 text-red-600 hover:text-red-800"
+              >
+                ×
+              </button>
+            </AlertDescription>
+          </Alert>
         </div>
       )}
 
       {/* Main Content */}
       <div className="px-8 py-8 max-w-6xl mx-auto">
         {/* Writing Panel */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6 mb-8">
+        <Card className="mb-8">
+          <CardContent className="p-6">
             <div className="mb-4">
               <HashtagTextarea
                 value={currentNote}
@@ -239,41 +248,42 @@ export default function Index() {
                     disabled={!currentNote.trim()}
                     isLoading={aiLoading}
                   />
-                  <button className="text-black border border-[#E5E5EA] rounded-lg px-3 py-1 text-sm hover:bg-[#fffef9]">
+                  <Button variant="outline" size="sm">
                     Apply My Style
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <select
-                value={selectedTag}
-                onChange={(e) => setSelectedTag(e.target.value)}
-                className="px-4 py-2 border border-[#E5E5EA] rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              >
-                {!weeklyTags.tag1 && !weeklyTags.tag2 && (
-                  <option value="" disabled>No tags for this week</option>
-                )}
-                {weeklyTags.tag1 && weeklyTags.tag1.trim() && (
-                  <option value={weeklyTags.tag1}>{weeklyTags.tag1}</option>
-                )}
-                {weeklyTags.tag2 && weeklyTags.tag2.trim() && (
-                  <option value={weeklyTags.tag2}>{weeklyTags.tag2}</option>
-                )}
-              </select>
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select a tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  {!weeklyTags.tag1 && !weeklyTags.tag2 && (
+                    <SelectItem value="" disabled>No tags for this week</SelectItem>
+                  )}
+                  {weeklyTags.tag1 && weeklyTags.tag1.trim() && (
+                    <SelectItem value={weeklyTags.tag1}>{weeklyTags.tag1}</SelectItem>
+                  )}
+                  {weeklyTags.tag2 && weeklyTags.tag2.trim() && (
+                    <SelectItem value={weeklyTags.tag2}>{weeklyTags.tag2}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
 
               <div className="flex gap-2 ml-auto">
-                <button
+                <Button
                   onClick={() => {
                     setEditingNote(null);
                     setCurrentNote('');
                   }}
-                  className="text-black border border-[#E5E5EA] rounded-lg px-4 py-2 hover:bg-[#fffef9]"
+                  variant="outline"
                 >
                   Clear
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => {
                     console.log('Button clicked - editingNote:', editingNote);
                     console.log('Current note:', currentNote);
@@ -288,23 +298,26 @@ export default function Index() {
                     }
                   }}
                   disabled={wordCount > 300 || !currentNote.trim() || loading}
-                  className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50"
+                  variant="default"
                 >
                   {loading ? 'Saving...' : editingNote ? 'Update' : 'Save to Draft'}
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
         {/* Two-Stage Board */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Draft Column */}
-          <div 
-            className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6"
+          <Card
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'draft')}
           >
-            <h2 className="text-lg font-semibold text-black mb-4">Draft</h2>
+            <CardHeader>
+              <CardTitle>Draft</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="space-y-3">
               {draftNotes.map(note => (
                 <div
@@ -314,9 +327,9 @@ export default function Index() {
                   className="bg-[#fffef9] rounded-lg p-4 cursor-move hover:shadow-sm transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs bg-black text-white px-2 py-1 rounded">
+                    <Badge variant="default" className="text-xs">
                       {note.tag}
-                    </span>
+                    </Badge>
                     <button
                       onClick={() => handleEditNote(note.id)}
                       className="text-[#71717A] hover:text-black"
@@ -338,15 +351,18 @@ export default function Index() {
                 </p>
               )}
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Ready to Post Column */}
-          <div 
-            className="bg-white rounded-2xl shadow-sm border border-[#E5E5EA] p-6"
+          <Card
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'ready')}
           >
-            <h2 className="text-lg font-semibold text-black mb-4">Ready to Post</h2>
+            <CardHeader>
+              <CardTitle>Ready to Post</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="space-y-3">
               {readyNotes.map(note => (
                 <div
@@ -356,9 +372,9 @@ export default function Index() {
                   className="bg-[#fffef9] rounded-lg p-4 cursor-move hover:shadow-sm transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs bg-black text-white px-2 py-1 rounded">
+                    <Badge variant="default" className="text-xs">
                       {note.tag}
-                    </span>
+                    </Badge>
                     <button
                       onClick={() => navigator.clipboard.writeText(note.content)}
                       className="text-[#71717A] hover:text-black"
@@ -380,7 +396,8 @@ export default function Index() {
                 </p>
               )}
             </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
       </div>
