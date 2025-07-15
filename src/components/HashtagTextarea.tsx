@@ -26,11 +26,29 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
 
   const availableTags = [weeklyTags.tag1, weeklyTags.tag2].filter(tag => tag);
 
+  // Auto-expand functionality
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Reset height to auto to get the actual scrollHeight
+      textarea.style.height = 'auto';
+      // Set height to scrollHeight to fit content
+      textarea.style.height = `${Math.max(textarea.scrollHeight, 128)}px`; // 128px = h-32 (8rem)
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [value]);
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     const cursorPosition = e.target.selectionStart;
     
     onChange(newValue);
+    
+    // Adjust textarea height after content change
+    setTimeout(() => adjustTextareaHeight(), 0);
     
     // Check for hashtag trigger
     const textBeforeCursor = newValue.substring(0, cursorPosition);
@@ -117,7 +135,8 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
         onChange={handleTextChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className={`w-full px-4 py-3 border border-[#E5E5EA] rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none h-32 ${className}`}
+        className={`w-full px-4 py-3 border border-[#E5E5EA] rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none overflow-hidden ${className}`}
+        style={{ minHeight: '128px' }}
         maxLength={maxLength}
       />
       
