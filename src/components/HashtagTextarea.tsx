@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNotesStore } from '../stores/notesStore';
+import { Plus } from 'lucide-react';
 
 interface HashtagTextareaProps {
   value: string;
@@ -21,7 +22,7 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
   const [hashtagStart, setHashtagStart] = useState(-1);
   const [filterText, setFilterText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { weeklyTags } = useNotesStore();
+  const { weeklyTags, canCreateNewTag, createNewTag } = useNotesStore();
 
   const availableTags = [weeklyTags.tag1, weeklyTags.tag2].filter(tag => tag);
 
@@ -87,6 +88,15 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
     }
   };
 
+  const handleCreateNewTag = async () => {
+    if (filterText.trim() && canCreateNewTag()) {
+      const success = await createNewTag(filterText.trim());
+      if (success) {
+        handleTagSelect(filterText.trim());
+      }
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (showTagDropdown && (e.key === 'Escape' || e.key === 'Tab')) {
       setShowTagDropdown(false);
@@ -111,9 +121,9 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
         maxLength={maxLength}
       />
       
-      {showTagDropdown && filteredTags.length > 0 && (
+      {showTagDropdown && (
         <div 
-          className="fixed z-50 bg-white border border-[#E5E5EA] rounded-lg shadow-sm py-2 min-w-[120px]"
+          className="fixed z-50 bg-white border border-[#E5E5EA] rounded-lg shadow-sm py-2 min-w-[140px]"
           style={{
             top: dropdownPosition.top,
             left: dropdownPosition.left
@@ -128,6 +138,15 @@ export const HashtagTextarea: React.FC<HashtagTextareaProps> = ({
               #{tag}
             </button>
           ))}
+          {filterText.trim() && !availableTags.some(tag => tag.toLowerCase() === filterText.toLowerCase()) && canCreateNewTag() && (
+            <button
+              onClick={handleCreateNewTag}
+              className="w-full px-4 py-2 text-left hover:bg-[#fffef9] text-sm text-black border-t border-[#E5E5EA] flex items-center gap-2"
+            >
+              <Plus className="w-3 h-3" />
+              Create "#{filterText}"
+            </button>
+          )}
         </div>
       )}
     </div>

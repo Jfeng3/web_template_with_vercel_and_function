@@ -30,6 +30,10 @@ interface NotesStore {
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   
+  // Tag Actions
+  canCreateNewTag: () => boolean;
+  createNewTag: (tagName: string) => Promise<boolean>;
+  
   // UI Actions
   setIsWriting: (writing: boolean) => void;
   setCurrentNote: (note: string) => void;
@@ -155,6 +159,81 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
     } catch (err) {
       set({ error: 'Failed to delete note', loading: false });
       console.error('Error deleting note:', err);
+    }
+  },
+  
+  // Tag Actions
+  canCreateNewTag: () => {
+    const { weeklyTags } = get();
+    const now = new Date();
+    const weekStart = new Date(weeklyTags.weekStart);
+    
+    // Check if we're in a new week
+    const currentWeekStart = new Date(now);
+    currentWeekStart.setDate(now.getDate() - now.getDay());
+    currentWeekStart.setHours(0, 0, 0, 0);
+    
+    const storedWeekStart = new Date(weekStart);
+    storedWeekStart.setHours(0, 0, 0, 0);
+    
+    // If we're in a new week, we can create up to 2 tags
+    if (currentWeekStart > storedWeekStart) {
+      return true;
+    }
+    
+    // Within the same week, check if we have available slots
+    const currentTags = [weeklyTags.tag1, weeklyTags.tag2].filter(tag => tag && tag.trim());
+    return currentTags.length < 2;
+  },
+  
+  createNewTag: async (tagName: string) => {
+    try {
+      const { weeklyTags } = get();
+      const now = new Date();
+      
+      // Check if we need to reset for a new week
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - now.getDay());
+      currentWeekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(currentWeekStart);
+      weekEnd.setDate(currentWeekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      
+      const storedWeekStart = new Date(weeklyTags.weekStart);
+      storedWeekStart.setHours(0, 0, 0, 0);
+      
+      let updatedTags: WeeklyTags;
+      
+      if (currentWeekStart > storedWeekStart) {
+        // New week - create fresh tags
+        updatedTags = await notesApi.createWeeklyTags({
+          tag1: tagName,
+          tag2: '',
+          weekStart: currentWeekStart,
+          weekEnd: weekEnd
+        });
+      } else {
+        // Same week - update existing tags
+        const updates: Partial<WeeklyTags> = {};
+        if (!weeklyTags.tag1 || !weeklyTags.tag1.trim()) {
+          updates.tag1 = tagName;
+        } else if (!weeklyTags.tag2 || !weeklyTags.tag2.trim()) {
+          updates.tag2 = tagName;
+        } else {
+          // Replace tag1 with the new tag
+          updates.tag1 = tagName;
+        }
+        
+        updatedTags = await notesApi.updateWeeklyTags(weeklyTags.id, updates);
+      }
+      
+      set({ weeklyTags: updatedTags, selectedTag: tagName });
+      return true;
+    } catch (err) {
+      console.error('Error creating new tag:', err);
+      set({ error: 'Failed to create new tag' });
+      return false;
     }
   },
   
