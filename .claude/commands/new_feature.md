@@ -1,0 +1,2 @@
+create a new branch for the following feature
+then create a md file in /features folder with the following sections 1. overview 2. core functionality 3. user flow. making sure the whole file is minimum with less than 100 words 
