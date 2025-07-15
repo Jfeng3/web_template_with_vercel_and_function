@@ -221,8 +221,9 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
         } else if (!weeklyTags.tag2 || !weeklyTags.tag2.trim()) {
           updates.tag2 = tagName;
         } else {
-          // Replace tag1 with the new tag
-          updates.tag1 = tagName;
+          // Both slots are full - cannot create more tags this week
+          set({ error: 'No more tag slots available this week. Wait until Monday for new slots.' });
+          return false;
         }
         
         updatedTags = await notesApi.updateWeeklyTags(weeklyTags.id, updates);

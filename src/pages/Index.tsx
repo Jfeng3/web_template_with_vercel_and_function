@@ -252,8 +252,15 @@ export default function Index() {
                 onChange={(e) => setSelectedTag(e.target.value)}
                 className="px-4 py-2 border border-[#E5E5EA] rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
               >
-                <option value={weeklyTags.tag1}>{weeklyTags.tag1}</option>
-                <option value={weeklyTags.tag2}>{weeklyTags.tag2}</option>
+                {!weeklyTags.tag1 && !weeklyTags.tag2 && (
+                  <option value="" disabled>No tags for this week</option>
+                )}
+                {weeklyTags.tag1 && weeklyTags.tag1.trim() && (
+                  <option value={weeklyTags.tag1}>{weeklyTags.tag1}</option>
+                )}
+                {weeklyTags.tag2 && weeklyTags.tag2.trim() && (
+                  <option value={weeklyTags.tag2}>{weeklyTags.tag2}</option>
+                )}
               </select>
 
               <div className="flex gap-2 ml-auto">
