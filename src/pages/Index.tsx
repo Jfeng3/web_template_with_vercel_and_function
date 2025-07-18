@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
+import { cn } from '../lib/utils';
 
 export default function Index() {
   const {
@@ -48,6 +49,9 @@ export default function Index() {
   const [aiModalType, setAiModalType] = useState<'critic' | 'rephrase'>('critic');
   const [aiResponse, setAiResponse] = useState<any>({});
   const [aiLoading, setAiLoading] = useState(false);
+  
+  // Expanded notes state
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
   // Load notes and weekly tags on mount
   useEffect(() => {
@@ -149,6 +153,20 @@ export default function Index() {
     setCurrentNote(content);
     setAiModalOpen(false);
   };
+
+  const toggleNoteExpanded = (noteId: string) => {
+    setExpandedNotes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(noteId)) {
+        newSet.delete(noteId);
+      } else {
+        newSet.add(noteId);
+      }
+      return newSet;
+    });
+  };
+
+  const isNoteExpanded = (noteId: string) => expandedNotes.has(noteId);
 
   // Apply filters
   const filtered = filteredNotes();
@@ -319,32 +337,59 @@ export default function Index() {
             </CardHeader>
             <CardContent>
             <div className="space-y-3">
-              {draftNotes.map(note => (
-                <div
-                  key={note.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, note)}
-                  className="bg-[#fffef9] rounded-lg p-4 cursor-move hover:shadow-sm transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="default" className="text-xs">
-                      {note.tag}
-                    </Badge>
-                    <button
-                      onClick={() => handleEditNote(note.id)}
-                      className="text-[#71717A] hover:text-black"
-                    >
-                      <Edit3 size={14} />
-                    </button>
+              {draftNotes.map(note => {
+                const isExpanded = isNoteExpanded(note.id);
+                const needsExpansion = note.content.length > 150; // Rough estimate for 3 lines
+                
+                return (
+                  <div
+                    key={note.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, note)}
+                    className="bg-[#fffef9] rounded-lg p-4 hover:shadow-sm transition-all duration-200 group"
+                    style={{ cursor: needsExpansion ? 'pointer' : 'move' }}
+                    onClick={(e) => {
+                      // Only expand if clicking on the content area, not buttons
+                      if ((e.target as HTMLElement).closest('button')) return;
+                      if (needsExpansion) {
+                        e.preventDefault();
+                        toggleNoteExpanded(note.id);
+                      }
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="default" className="text-xs">
+                        {note.tag}
+                      </Badge>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditNote(note.id);
+                        }}
+                        className="text-[#71717A] hover:text-black z-10"
+                      >
+                        <Edit3 size={14} />
+                      </button>
+                    </div>
+                    <p className={cn(
+                      "text-sm text-black transition-all duration-200",
+                      !isExpanded && "line-clamp-3"
+                    )}>
+                      {note.content}
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-[#71717A]">
+                        {note.content.split(/\s+/).filter(w => w).length} words
+                      </p>
+                      {needsExpansion && (
+                        <p className="text-xs text-blue-grotto opacity-0 group-hover:opacity-100 transition-opacity">
+                          {isExpanded ? 'Click to collapse' : 'Click to expand'}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-black line-clamp-3">
-                    {note.content}
-                  </p>
-                  <p className="text-xs text-[#71717A] mt-2">
-                    {note.content.split(/\s+/).filter(w => w).length} words
-                  </p>
-                </div>
-              ))}
+                );
+              })}
               {draftNotes.length === 0 && (
                 <p className="text-[#71717A] text-sm text-center py-8">
                   No drafts yet. Start writing!
@@ -364,32 +409,59 @@ export default function Index() {
             </CardHeader>
             <CardContent>
             <div className="space-y-3">
-              {readyNotes.map(note => (
-                <div
-                  key={note.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, note)}
-                  className="bg-[#fffef9] rounded-lg p-4 cursor-move hover:shadow-sm transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="default" className="text-xs">
-                      {note.tag}
-                    </Badge>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(note.content)}
-                      className="text-[#71717A] hover:text-black"
-                    >
-                      <Check size={14} />
-                    </button>
+              {readyNotes.map(note => {
+                const isExpanded = isNoteExpanded(note.id);
+                const needsExpansion = note.content.length > 150; // Rough estimate for 3 lines
+                
+                return (
+                  <div
+                    key={note.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, note)}
+                    className="bg-[#fffef9] rounded-lg p-4 hover:shadow-sm transition-all duration-200 group"
+                    style={{ cursor: needsExpansion ? 'pointer' : 'move' }}
+                    onClick={(e) => {
+                      // Only expand if clicking on the content area, not buttons
+                      if ((e.target as HTMLElement).closest('button')) return;
+                      if (needsExpansion) {
+                        e.preventDefault();
+                        toggleNoteExpanded(note.id);
+                      }
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="default" className="text-xs">
+                        {note.tag}
+                      </Badge>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(note.content);
+                        }}
+                        className="text-[#71717A] hover:text-black z-10"
+                      >
+                        <Check size={14} />
+                      </button>
+                    </div>
+                    <p className={cn(
+                      "text-sm text-black transition-all duration-200",
+                      !isExpanded && "line-clamp-3"
+                    )}>
+                      {note.content}
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-[#71717A]">
+                        Ready to publish
+                      </p>
+                      {needsExpansion && (
+                        <p className="text-xs text-blue-grotto opacity-0 group-hover:opacity-100 transition-opacity">
+                          {isExpanded ? 'Click to collapse' : 'Click to expand'}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-black line-clamp-3">
-                    {note.content}
-                  </p>
-                  <p className="text-xs text-[#71717A] mt-2">
-                    Ready to publish
-                  </p>
-                </div>
-              ))}
+                );
+              })}
               {readyNotes.length === 0 && (
                 <p className="text-[#71717A] text-sm text-center py-8">
                   Drag polished notes here

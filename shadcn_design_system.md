@@ -31,7 +31,11 @@ npx shadcn-ui@latest init
 ### Layout Components
 - **Card**: Container for note items and content sections
 - **Separator**: Visual dividers between sections
-- **Badge**: Status indicators and tags
+- **Badge**: Status indicators and tags with multiple variants:
+  - `default`: Blue Grotto (#189AB4) - Primary tags
+  - `secondary`: Blue Green (#75E6DA) - Informational badges
+  - `subtle`: Baby Blue (#D4F1F4) - Less prominent indicators
+  - `strong`: Navy Blue (#05445E) - High emphasis badges
 
 ### Interactive Components
 - **Dialog**: Modal overlays for note editing
@@ -42,7 +46,14 @@ npx shadcn-ui@latest init
 ## Design Tokens
 
 ### Colors
-- **Primary**: Blue accent color
+
+#### Primary Palette
+- **Navy Blue** (#05445E): Deep primary color for headers and important actions
+- **Blue Grotto** (#189AB4): Main primary color for buttons and interactive elements
+- **Blue Green** (#75E6DA): Accent color for highlights and secondary actions
+- **Baby Blue** (#D4F1F4): Light background tints and subtle elements
+
+#### System Colors
 - **Secondary**: Gray tones
 - **Muted**: Subtle backgrounds
 - **Destructive**: Error states
@@ -92,6 +103,14 @@ npx shadcn-ui@latest init
 </Button>
 ```
 
+### Badge Examples
+```tsx
+<Badge variant="default">productivity</Badge>  // Blue Grotto
+<Badge variant="secondary">3 notes</Badge>     // Blue Green
+<Badge variant="subtle">draft</Badge>          // Baby Blue
+<Badge variant="strong">featured</Badge>       // Navy Blue
+```
+
 ## Responsive Design
 
 ### Breakpoints
@@ -123,9 +142,11 @@ npx shadcn-ui@latest init
 ```css
 :root {
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
+  --foreground: 201 83% 20%; /* Navy Blue */
+  --primary: 191 74% 40%; /* Blue Grotto */
+  --primary-foreground: 0 0% 100%; /* white for contrast */
+  --secondary: 175 59% 86%; /* Baby Blue */
+  --accent: 176 62% 68%; /* Blue Green */
 }
 ```
 

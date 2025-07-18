@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
+	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -8,16 +9,62 @@ export default {
 		"./src/**/*.{ts,tsx}",
 	],
 	theme: {
+		container: {
+			center: true,
+			padding: "2rem",
+			screens: {
+				"2xl": "1400px",
+			},
+		},
 		extend: {
 			colors: {
+				// Custom Color Palette
+				'navy-blue': '#05445E',         // Deep primary for headers
+				'blue-grotto': '#189AB4',       // Main primary color
+				'blue-green': '#75E6DA',        // Accent color
+				'baby-blue': '#D4F1F4',         // Light backgrounds
+				
 				// High Contrast System from design_guidance.md
 				'primary-bg': '#fffef9',        // Cream page background
 				'primary-card': '#FFFFFF',      // Pure white cards
-				'primary-text': '#000000',      // Pure black for titles
+				'primary-text': '#05445E',      // Navy Blue for titles
 				'primary-secondaryText': '#71717A', // Gray for metadata
-				'primary-accent': '#000000',    // Black for primary actions
+				'primary-accent': '#189AB4',    // Blue Grotto for primary actions
 				'ui-divider': '#E5E5EA',       // Light borders
 				'ui-placeholder': '#C7C7CC',   // Placeholder text
+				border: "hsl(var(--border))",
+				input: "hsl(var(--input))",
+				ring: "hsl(var(--ring))",
+				background: "hsl(var(--background))",
+				foreground: "hsl(var(--foreground))",
+				primary: {
+					DEFAULT: "hsl(var(--primary))",
+					foreground: "hsl(var(--primary-foreground))",
+				},
+				secondary: {
+					DEFAULT: "hsl(var(--secondary))",
+					foreground: "hsl(var(--secondary-foreground))",
+				},
+				destructive: {
+					DEFAULT: "hsl(var(--destructive))",
+					foreground: "hsl(var(--destructive-foreground))",
+				},
+				muted: {
+					DEFAULT: "hsl(var(--muted))",
+					foreground: "hsl(var(--muted-foreground))",
+				},
+				accent: {
+					DEFAULT: "hsl(var(--accent))",
+					foreground: "hsl(var(--accent-foreground))",
+				},
+				popover: {
+					DEFAULT: "hsl(var(--popover))",
+					foreground: "hsl(var(--popover-foreground))",
+				},
+				card: {
+					DEFAULT: "hsl(var(--card))",
+					foreground: "hsl(var(--card-foreground))",
+				},
 			},
 			fontFamily: {
 				sans: ['Inter', 'SF Pro Text', '-apple-system', 'system-ui', 'sans-serif'],
@@ -38,8 +85,9 @@ export default {
 				'8': '32px',  // Large spacing
 			},
 			borderRadius: {
-				'lg': '0.5rem',
-				'2xl': '1rem',
+				lg: "var(--radius)",
+				md: "calc(var(--radius) - 2px)",
+				sm: "calc(var(--radius) - 4px)",
 			},
 			boxShadow: {
 				'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
