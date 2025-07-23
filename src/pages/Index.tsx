@@ -4,7 +4,7 @@ import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIAssistantButtons from '../components/AIAssistantButtons';
 import AIResponseModal from '../components/AIResponseModal';
-import { HashtagTextarea } from '../components/HashtagTextarea';
+import { TiptapEditor } from '../components/TiptapEditor';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { cn } from '../lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function Index() {
   const {
@@ -249,11 +251,10 @@ export default function Index() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="mb-4">
-              <HashtagTextarea
+              <TiptapEditor
                 value={currentNote}
                 onChange={setCurrentNote}
-                placeholder="Start writing your note..."
-                maxLength={1500}
+                placeholder="Start writing your note... (Type # for heading, **bold**, *italic*, etc.)"
               />
               <div className="flex justify-between items-center mt-2">
                 <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
@@ -371,12 +372,60 @@ export default function Index() {
                         <Edit3 size={14} />
                       </button>
                     </div>
-                    <p className={cn(
-                      "text-sm text-black transition-all duration-200",
+                    <div className={cn(
+                      "text-sm text-black transition-all duration-200 prose prose-sm max-w-none",
                       !isExpanded && "line-clamp-3"
                     )}>
-                      {note.content}
-                    </p>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ children }) => (
+                            <h1 className="text-lg font-bold text-navy-blue mb-2">{children}</h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-base font-semibold text-navy-blue mb-2">{children}</h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-sm font-medium text-navy-blue mb-1">{children}</h3>
+                          ),
+                          p: ({ children }) => (
+                            <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-4 space-y-1 mb-2">{children}</ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal pl-4 space-y-1 mb-2">{children}</ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-sm leading-relaxed">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-navy-blue">{children}</strong>
+                          ),
+                          em: ({ children }) => (
+                            <em className="italic">{children}</em>
+                          ),
+                          code: ({ children, className }) => {
+                            const isInline = !className;
+                            return isInline ? (
+                              <code className="px-1 py-0.5 bg-baby-blue text-navy-blue rounded text-xs">
+                                {children}
+                              </code>
+                            ) : (
+                              <code className={className}>{children}</code>
+                            );
+                          },
+                          a: ({ children, href }) => (
+                            <a href={href} className="text-blue-grotto hover:text-blue-green underline" target="_blank" rel="noopener noreferrer">
+                              {children}
+                            </a>
+                          ),
+                        }}
+                      >
+                        {note.content}
+                      </ReactMarkdown>
+                    </div>
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-xs text-[#71717A]">
                         {note.content.split(/\s+/).filter(w => w).length} words
@@ -443,12 +492,60 @@ export default function Index() {
                         <Check size={14} />
                       </button>
                     </div>
-                    <p className={cn(
-                      "text-sm text-black transition-all duration-200",
+                    <div className={cn(
+                      "text-sm text-black transition-all duration-200 prose prose-sm max-w-none",
                       !isExpanded && "line-clamp-3"
                     )}>
-                      {note.content}
-                    </p>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ children }) => (
+                            <h1 className="text-lg font-bold text-navy-blue mb-2">{children}</h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-base font-semibold text-navy-blue mb-2">{children}</h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-sm font-medium text-navy-blue mb-1">{children}</h3>
+                          ),
+                          p: ({ children }) => (
+                            <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-4 space-y-1 mb-2">{children}</ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal pl-4 space-y-1 mb-2">{children}</ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-sm leading-relaxed">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-navy-blue">{children}</strong>
+                          ),
+                          em: ({ children }) => (
+                            <em className="italic">{children}</em>
+                          ),
+                          code: ({ children, className }) => {
+                            const isInline = !className;
+                            return isInline ? (
+                              <code className="px-1 py-0.5 bg-baby-blue text-navy-blue rounded text-xs">
+                                {children}
+                              </code>
+                            ) : (
+                              <code className={className}>{children}</code>
+                            );
+                          },
+                          a: ({ children, href }) => (
+                            <a href={href} className="text-blue-grotto hover:text-blue-green underline" target="_blank" rel="noopener noreferrer">
+                              {children}
+                            </a>
+                          ),
+                        }}
+                      >
+                        {note.content}
+                      </ReactMarkdown>
+                    </div>
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-xs text-[#71717A]">
                         Ready to publish

@@ -48,3 +48,77 @@
     overflow: hidden;
   }
 }
+
+@layer components {
+  .prose {
+    color: theme('colors.foreground');
+    max-width: 65ch;
+  }
+  
+  .prose-sm {
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+  
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    color: hsl(var(--foreground));
+    margin-top: 0;
+    margin-bottom: 0.5em;
+  }
+  
+  .prose p {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .prose ul,
+  .prose ol {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .prose li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .prose code {
+    font-size: 0.875em;
+  }
+  
+  .prose pre {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .prose blockquote {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .prose hr {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .prose strong {
+    font-weight: 600;
+  }
+  
+  .prose em {
+    font-style: italic;
+  }
+  
+  .prose > :first-child {
+    margin-top: 0;
+  }
+  
+  .prose > :last-child {
+    margin-bottom: 0;
+  }
+}
