@@ -185,7 +185,7 @@ export default function Index() {
         {/* Header */}
       <div className="sticky top-0 bg-white border-b border-[#E5E5EA] px-8 py-6 z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-black">Daily Notes Writer</h1>
+          <h1 className="text-2xl font-bold text-black">Daily Post Writer</h1>
           <div className="flex items-center gap-4">
             <div className="text-sm text-[#71717A]">
               Week Focus: <span className="font-medium text-black">{weeklyTags.tag1}</span> & <span className="font-medium text-black">{weeklyTags.tag2}</span>
@@ -448,13 +448,13 @@ export default function Index() {
             </CardContent>
           </Card>
 
-          {/* Ready to Post Column */}
+          {/* Ready Column */}
           <Card
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'ready')}
           >
             <CardHeader>
-              <CardTitle>Ready to Post</CardTitle>
+              <CardTitle>Ready</CardTitle>
             </CardHeader>
             <CardContent>
             <div className="space-y-3">
