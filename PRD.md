@@ -37,6 +37,17 @@ Content creators struggle to maintain consistent daily writing habits. Without a
    - All notes must use one of the weekly tags
    - Tag selection resets every Monday
 
+6. **text formating
+   - Support click / to select element like headline etc
+   - Support markdown for fast input
+   - support # for hashtag 
+   - support drag and drop image
+
+7 ** support vocabulary system, highlight various level of vabulary for me to memorize 
+
+8. ** critic, support a crtic when it rephrase my input, teach me which part is not good in my own writing 
+
+
 ## User Experience Flow
 
 **Daily Writing (10 min):**

@@ -25,6 +25,11 @@ export function TiptapEditor({
       }),
     ],
     content: value,
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none',
+      },
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getText());
     },
@@ -34,7 +39,7 @@ export function TiptapEditor({
     <div className="min-h-[72px] border border-gray-300 rounded-md p-3">
       <EditorContent 
         editor={editor} 
-        className="min-h-[48px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[48px] [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-medium" 
+        className="min-h-[48px]" 
       />
     </div>
   );
