@@ -63,7 +63,7 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
       messages: [
         {
           role: 'system',
-          content: `You are a writing assistant that helps rephrase content to be simple, clear, and conversational.
+          content: `You are a writing assistant that rephrases content to be simple, clear, and conversational.
           Keep the original meaning while making it:
           - Simple: Use everyday language, avoid jargon
           - Clear: Direct and easy to understand
@@ -72,7 +72,9 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
           
           Write as if you're having a friendly chat. Use "you" and "we" when appropriate. 
           If the original content is Chinese, please translate it to English first.
-          Avoid complex sentences. Keep it human and relatable.`
+          Avoid complex sentences. Keep it human and relatable.
+          
+          IMPORTANT: Return ONLY the rephrased text. Do not include any explanations, introductions, or comments like "Here's a simpler version:" or "I've rephrased this to be:". Just return the rephrased content directly.`
         },
         {
           role: 'user',
@@ -83,7 +85,10 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
       temperature: 0.8
     });
 
-    const rephrased = response.choices[0]?.message?.content || '';
+    let rephrased = response.choices[0]?.message?.content || '';
+    
+    // Clean any prefacing explanations that might still appear
+    rephrased = cleanRephraseResponse(rephrased);
     
     return {
       rephrased,
@@ -99,6 +104,30 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
 function extractSuggestions(feedback: string): string[] {
   const lines = feedback.split('\n').filter(line => line.trim());
   return lines.slice(0, 3).map(line => line.replace(/^[-•*]\s*/, '').trim());
+}
+
+function cleanRephraseResponse(text: string): string {
+  // Remove common prefacing phrases that might appear despite instructions
+  const prefacingPatterns = [
+    /^Here's a [^:]*:\s*/i,
+    /^I've rephrased [^:]*:\s*/i,
+    /^Here is [^:]*:\s*/i,
+    /^This is [^:]*:\s*/i,
+    /^A [^:]* version:\s*/i,
+    /^Rephrased:\s*/i,
+    /^Simplified:\s*/i,
+    /^Improved version:\s*/i,
+    /^Better version:\s*/i,
+    /^Revised:\s*/i
+  ];
+  
+  let cleaned = text.trim();
+  
+  for (const pattern of prefacingPatterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  
+  return cleaned.trim();
 }
 
 function extractAlternatives(rephrased: string): string[] {
