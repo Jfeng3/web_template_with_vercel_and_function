@@ -4,6 +4,7 @@ import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIResponseModal from '../components/AIResponseModal';
 import { TextEditor } from '../components/TextEditor';
+import { ComparisonTextEditor } from '../components/ComparisonTextEditor';
 import { RephraseBox } from '../components/RephraseBox';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
@@ -267,30 +268,61 @@ export default function Index() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="mb-4">
-              <TextEditor
-                value={currentNote}
-                onChange={setCurrentNote}
-                placeholder="Start writing your note... (Type # for heading, **bold**, *italic*, etc.)"
-                onCritic={handleCritic}
-                onRephrase={handleRephrase}
-                onApplyStyle={() => console.log('Apply style')}
-                onSubmit={() => {
-                  if (editingNote) {
-                    handleUpdateNote();
-                  } else {
-                    handleSaveNote();
-                  }
-                }}
-                disabled={loading}
-                isLoading={aiLoading}
-              />
+              <div className={`flex gap-4 ${rephraseResponse || rephraseLoading ? '' : 'justify-center'}`}>
+                <div className={`${rephraseResponse || rephraseLoading ? 'flex-1' : 'w-full'} transition-all duration-300`}>
+                  {rephraseResponse || rephraseLoading ? (
+                    <ComparisonTextEditor
+                      value={currentNote}
+                      onChange={setCurrentNote}
+                      placeholder="Start writing your note... (Type # for heading, **bold**, *italic*, etc.)"
+                      onCritic={handleCritic}
+                      onRephrase={handleRephrase}
+                      onApplyStyle={() => console.log('Apply style')}
+                      onSubmit={() => {
+                        if (editingNote) {
+                          handleUpdateNote();
+                        } else {
+                          handleSaveNote();
+                        }
+                      }}
+                      disabled={loading}
+                      isLoading={aiLoading}
+                      showComparison={true}
+                    />
+                  ) : (
+                    <TextEditor
+                      value={currentNote}
+                      onChange={setCurrentNote}
+                      placeholder="Start writing your note... (Type # for heading, **bold**, *italic*, etc.)"
+                      onCritic={handleCritic}
+                      onRephrase={handleRephrase}
+                      onApplyStyle={() => console.log('Apply style')}
+                      onSubmit={() => {
+                        if (editingNote) {
+                          handleUpdateNote();
+                        } else {
+                          handleSaveNote();
+                        }
+                      }}
+                      disabled={loading}
+                      isLoading={aiLoading}
+                    />
+                  )}
+                </div>
+                
+                {(rephraseResponse || rephraseLoading) && (
+                  <div className="flex-1 transition-all duration-300">
+                    <RephraseBox
+                      rephraseResponse={rephraseResponse}
+                      isLoading={rephraseLoading}
+                      onApply={handleApplyRephrase}
+                      onClose={handleCloseRephrase}
+                      originalText={currentNote}
+                    />
+                  </div>
+                )}
+              </div>
               
-              <RephraseBox
-                rephraseResponse={rephraseResponse}
-                isLoading={rephraseLoading}
-                onApply={handleApplyRephrase}
-                onClose={handleCloseRephrase}
-              />
               <div className="flex justify-between items-center mt-2">
                 <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
                   {wordCount}/300 words
