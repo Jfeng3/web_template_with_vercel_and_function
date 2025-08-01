@@ -4,6 +4,7 @@ import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIResponseModal from '../components/AIResponseModal';
 import { TextEditor } from '../components/TextEditor';
+import { RephraseBox } from '../components/RephraseBox';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -46,9 +47,13 @@ export default function Index() {
 
   // AI Assistant state
   const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [aiModalType, setAiModalType] = useState<'critic' | 'rephrase'>('critic');
+  const [aiModalType, setAiModalType] = useState<'critic'>('critic');
   const [aiResponse, setAiResponse] = useState<any>({});
   const [aiLoading, setAiLoading] = useState(false);
+  
+  // Inline rephrase state
+  const [rephraseResponse, setRephraseResponse] = useState<any>(null);
+  const [rephraseLoading, setRephraseLoading] = useState(false);
   
   // Expanded notes state
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
@@ -141,24 +146,27 @@ export default function Index() {
   const handleRephrase = async () => {
     if (!currentNote.trim()) return;
     
-    setAiLoading(true);
-    setAiModalType('rephrase');
-    setAiModalOpen(true);
+    setRephraseLoading(true);
+    setRephraseResponse(null);
     
     try {
       const response = await getRephraseOptions(currentNote);
-      setAiResponse(response);
+      setRephraseResponse(response);
     } catch (error) {
       setError('Failed to get AI rephrase options. Please try again.');
-      setAiModalOpen(false);
+      setRephraseResponse(null);
     } finally {
-      setAiLoading(false);
+      setRephraseLoading(false);
     }
   };
 
   const handleApplyRephrase = (content: string) => {
     setCurrentNote(content);
-    setAiModalOpen(false);
+    setRephraseResponse(null);
+  };
+
+  const handleCloseRephrase = () => {
+    setRephraseResponse(null);
   };
 
   const toggleNoteExpanded = (noteId: string) => {
@@ -275,6 +283,13 @@ export default function Index() {
                 }}
                 disabled={loading}
                 isLoading={aiLoading}
+              />
+              
+              <RephraseBox
+                rephraseResponse={rephraseResponse}
+                isLoading={rephraseLoading}
+                onApply={handleApplyRephrase}
+                onClose={handleCloseRephrase}
               />
               <div className="flex justify-between items-center mt-2">
                 <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
@@ -540,7 +555,6 @@ export default function Index() {
         onClose={() => setAiModalOpen(false)}
         type={aiModalType}
         response={aiResponse}
-        onApply={handleApplyRephrase}
         isLoading={aiLoading}
       />
     </div>

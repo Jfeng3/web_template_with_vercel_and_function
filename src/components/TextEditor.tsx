@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Hash, 
   Image, 
@@ -70,6 +70,13 @@ export function TextEditor({
       onChange?.(editor.getText());
     },
   });
+
+  // Sync external value changes with editor
+  useEffect(() => {
+    if (editor && value !== editor.getText()) {
+      editor.commands.setContent(value);
+    }
+  }, [editor, value]);
 
   const handleSubmit = () => {
     if (editor) {

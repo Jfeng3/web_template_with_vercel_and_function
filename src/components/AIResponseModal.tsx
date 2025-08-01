@@ -8,15 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 interface AIResponseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: 'critic' | 'rephrase';
+  type: 'critic';
   response: {
     feedback?: string;
     suggestions?: string[];
     score?: number;
-    rephrased?: string;
-    alternatives?: string[];
   };
-  onApply?: (content: string) => void;
   isLoading?: boolean;
 }
 
@@ -25,7 +22,6 @@ export default function AIResponseModal({
   onClose,
   type,
   response,
-  onApply,
   isLoading = false
 }: AIResponseModalProps) {
   return (
@@ -33,7 +29,7 @@ export default function AIResponseModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {type === 'critic' ? 'AI Critic Feedback' : 'AI Rephrase Options'}
+            AI Critic Feedback
           </DialogTitle>
         </DialogHeader>
 
@@ -89,61 +85,6 @@ export default function AIResponseModal({
                 </div>
               )}
 
-              {type === 'rephrase' && (
-                <div className="space-y-4">
-                  {response.rephrased && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Improved Version:</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-black leading-relaxed mb-3">
-                          {response.rephrased}
-                        </p>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-[#71717A]">
-                            {response.rephrased.split(/\s+/).filter(w => w).length} words
-                          </span>
-                          <Button
-                            onClick={() => onApply?.(response.rephrased!)}
-                            size="sm"
-                          >
-                            Apply This Version
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {response.alternatives && response.alternatives.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Alternative Approaches:</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {response.alternatives.map((alternative, index) => (
-                            <Card key={index} className="bg-muted">
-                              <CardContent className="p-3">
-                                <p className="text-sm text-black leading-relaxed mb-2">
-                                  {alternative}
-                                </p>
-                                <Button
-                                  onClick={() => onApply?.(alternative)}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  Use This
-                                </Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
             </>
           )}
         </div>
