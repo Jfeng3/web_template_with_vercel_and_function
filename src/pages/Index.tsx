@@ -7,7 +7,6 @@ import { TextEditor } from '../components/TextEditor';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { cn } from '../lib/utils';
@@ -59,6 +58,13 @@ export default function Index() {
     loadNotes();
     loadWeeklyTags();
   }, [loadNotes, loadWeeklyTags]);
+
+  // Set default tag when weekly tags are loaded
+  useEffect(() => {
+    if (!selectedTag && weeklyTags.tag1) {
+      setSelectedTag(weeklyTags.tag1);
+    }
+  }, [weeklyTags.tag1, selectedTag, setSelectedTag]);
 
   const handleNewNote = () => {
     setCurrentNote('');
@@ -215,7 +221,10 @@ export default function Index() {
               </div>
             )}
             <Button
-              onClick={handleNewNote}
+              onClick={() => {
+                setEditingNote(null);
+                setCurrentNote('');
+              }}
               disabled={loading}
               variant="default"
               size="default"
@@ -257,6 +266,13 @@ export default function Index() {
                 onCritic={handleCritic}
                 onRephrase={handleRephrase}
                 onApplyStyle={() => console.log('Apply style')}
+                onSubmit={() => {
+                  if (editingNote) {
+                    handleUpdateNote();
+                  } else {
+                    handleSaveNote();
+                  }
+                }}
                 disabled={loading}
                 isLoading={aiLoading}
               />
@@ -268,53 +284,7 @@ export default function Index() {
             </div>
 
             <div className="flex items-center gap-4">
-              <Select value={selectedTag} onValueChange={setSelectedTag}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select a tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  {!weeklyTags.tag1 && !weeklyTags.tag2 && (
-                    <SelectItem value="" disabled>No tags for this week</SelectItem>
-                  )}
-                  {weeklyTags.tag1 && weeklyTags.tag1.trim() && (
-                    <SelectItem value={weeklyTags.tag1}>{weeklyTags.tag1}</SelectItem>
-                  )}
-                  {weeklyTags.tag2 && weeklyTags.tag2.trim() && (
-                    <SelectItem value={weeklyTags.tag2}>{weeklyTags.tag2}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-2 ml-auto">
-                <Button
-                  onClick={() => {
-                    setEditingNote(null);
-                    setCurrentNote('');
-                  }}
-                  variant="outline"
-                >
-                  Clear
-                </Button>
-                <Button
-                  onClick={() => {
-                    console.log('Button clicked - editingNote:', editingNote);
-                    console.log('Current note:', currentNote);
-                    console.log('Selected tag:', selectedTag);
-                    console.log('Word count:', wordCount);
-                    if (editingNote) {
-                      console.log('>>> Calling handleUpdateNote');
-                      handleUpdateNote();
-                    } else {
-                      console.log('>>> Calling handleSaveNote');
-                      handleSaveNote();
-                    }
-                  }}
-                  disabled={wordCount > 300 || !currentNote.trim() || loading}
-                  variant="default"
-                >
-                  {loading ? 'Saving...' : editingNote ? 'Update' : 'Save to Draft'}
-                </Button>
-              </div>
+              {/* Tags and buttons removed - Send button in TextEditor handles saving */}
             </div>
           </CardContent>
         </Card>
