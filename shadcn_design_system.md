@@ -18,9 +18,16 @@ npx shadcn-ui@latest init
 ## Core Components
 
 ### Typography
-- **Text**: Use `cn()` utility for consistent text styling
+- **Font Family**: Inter
+- **Font Style**: Regular (400 weight)
+- **Font Size**: 16px (base)
+- **Line Height**: 1.5 (24px for 16px text)
+- **Letter Spacing**: Normal (0px)
+- **Paragraph Spacing**: 16px between paragraphs
+- **Font Color**: #202124 (very dark gray)
+- **Alignment**: Left-aligned
 - **Headings**: h1, h2, h3 with proper hierarchy
-- **Body Text**: Regular paragraph text with proper line height
+- **Text**: Use `cn()` utility for consistent text styling
 
 ### Form Elements
 - **Input**: Text inputs with focus states
@@ -64,6 +71,7 @@ npx shadcn-ui@latest init
 - **Layout spacing**: 32px, 48px, 64px
 
 ### Typography Scale
+- **Font**: Inter Regular (400 weight)
 - **xs**: 12px
 - **sm**: 14px
 - **base**: 16px

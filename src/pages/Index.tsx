@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit3, Check } from 'lucide-react';
 import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
-import AIAssistantButtons from '../components/AIAssistantButtons';
 import AIResponseModal from '../components/AIResponseModal';
-import { TiptapEditor } from '../components/TiptapEditor';
+import { TextEditor } from '../components/TextEditor';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -251,25 +250,19 @@ export default function Index() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="mb-4">
-              <TiptapEditor
+              <TextEditor
                 value={currentNote}
                 onChange={setCurrentNote}
                 placeholder="Start writing your note... (Type # for heading, **bold**, *italic*, etc.)"
+                onCritic={handleCritic}
+                onRephrase={handleRephrase}
+                onApplyStyle={() => console.log('Apply style')}
+                disabled={loading}
+                isLoading={aiLoading}
               />
               <div className="flex justify-between items-center mt-2">
                 <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
                   {wordCount}/300 words
-                </div>
-                <div className="flex items-center gap-2">
-                  <AIAssistantButtons
-                    onCritic={handleCritic}
-                    onRephrase={handleRephrase}
-                    disabled={!currentNote.trim()}
-                    isLoading={aiLoading}
-                  />
-                  <Button variant="outline" size="sm">
-                    Apply My Style
-                  </Button>
                 </div>
               </div>
             </div>

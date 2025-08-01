@@ -27,7 +27,8 @@ export default {
 				// High Contrast System from design_guidance.md
 				'primary-bg': '#fffef9',        // Cream page background
 				'primary-card': '#FFFFFF',      // Pure white cards
-				'primary-text': '#05445E',      // Navy Blue for titles
+				'primary-text': '#202124',      // Very dark gray for body text
+				'primary-heading': '#05445E',   // Navy Blue for headings
 				'primary-secondaryText': '#71717A', // Gray for metadata
 				'primary-accent': '#189AB4',    // Blue Grotto for primary actions
 				'ui-divider': '#E5E5EA',       // Light borders
@@ -67,7 +68,7 @@ export default {
 				},
 			},
 			fontFamily: {
-				sans: ['Inter', 'SF Pro Text', '-apple-system', 'system-ui', 'sans-serif'],
+				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 			},
 			fontSize: {
 				// Text hierarchy from design_guidance.md
