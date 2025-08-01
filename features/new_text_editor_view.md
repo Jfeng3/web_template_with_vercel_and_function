@@ -16,23 +16,21 @@ A minimal, clean text editor interface designed for content creation with essent
 The toolbar is positioned at the bottom of the editor with the following tools:
 
 ### Formatting Tools (Left Side)
-1. **Heading (#)** - Insert headings and subheadings
-2. **Image (📷)** - Insert images into the content
-3. **Text Format (Aa)** - Basic text formatting options (bold, italic, etc.)
-4. **Unordered List (•)** - Create bulleted lists
-5. **Ordered List (1.)** - Create numbered lists
-6. **Mention (@)** - Add mentions or references
+
+1. **Image (📷)** - Insert images into the content
+2. **Text Format (Aa)** - Basic text formatting options (bold, italic, etc.)
+
 
 ### AI-Powered Tools (Center)
-7. **Rephrase (🔄)** - AI-powered content rephrasing
+3. **Rephrase (🔄)** - AI-powered content rephrasing
    - Icon: Circular arrows or refresh symbol
    - Function: Rewrite selected text for clarity or tone
    
-8. **Critic (💭)** - AI content review and suggestions
+4. **Critic (💭)** - AI content review and suggestions
    - Icon: Thought bubble or lightbulb
    - Function: Provide constructive feedback and improvements
    
-9. **Apply My Style (✨)** - Personalized style application
+5. **Apply My Style (✨)** - Personalized style application
    - Icon: Sparkles or magic wand
    - Function: Apply user's writing style preferences to content
 
