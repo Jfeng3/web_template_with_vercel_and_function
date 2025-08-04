@@ -64,6 +64,7 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
         {
           role: 'system',
           content: `You are a writing assistant that rephrases content to be simple, clear, and conversational.
+          change as less as possible. only if some phrases, words or sentence structure are unlikely to be used by native English speakers, please change them.
           Keep the original meaning while making it:
           - Simple: Use everyday language, avoid jargon
           - Clear: Direct and easy to understand
