@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, Edit3, Check } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Edit3 } from 'lucide-react';
 import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIResponseModal from '../components/AIResponseModal';
@@ -24,7 +24,6 @@ export default function Index() {
     selectedTag,
     wordCount,
     editingNote,
-    draggedNote,
     loading,
     error,
     filterStatus,
@@ -38,7 +37,6 @@ export default function Index() {
     setCurrentNote,
     setSelectedTag,
     setEditingNote,
-    setDraggedNote,
     setFilterStatus,
     setFilterTag,
     setSidebarCollapsed,
@@ -110,21 +108,6 @@ export default function Index() {
     }
   };
 
-  const handleDragStart = (_e: React.DragEvent, note: any) => {
-    setDraggedNote(note);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = async (e: React.DragEvent, status: 'draft' | 'ready') => {
-    e.preventDefault();
-    if (draggedNote) {
-      await updateNote(draggedNote.id, { status });
-      setDraggedNote(null);
-    }
-  };
 
   const handleCritic = async () => {
     if (!currentNote.trim()) return;
@@ -187,7 +170,6 @@ export default function Index() {
   // Apply filters
   const filtered = filteredNotes();
   const draftNotes = filtered.filter(n => n.status === 'draft');
-  const readyNotes = filtered.filter(n => n.status === 'ready');
 
   return (
     <div className="min-h-screen bg-[#fffef9] flex">
@@ -336,15 +318,12 @@ export default function Index() {
           </CardContent>
         </Card>
 
-        {/* Two-Stage Board */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Draft Column */}
-          <Card
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, 'draft')}
-          >
+        {/* Notes Board */}
+        <div className="max-w-4xl mx-auto">
+          {/* Notes Column */}
+          <Card>
             <CardHeader>
-              <CardTitle>Draft</CardTitle>
+              <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
             <div className="space-y-3">
@@ -355,10 +334,8 @@ export default function Index() {
                 return (
                   <div
                     key={note.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, note)}
                     className="bg-[#fffef9] rounded-lg p-4 hover:shadow-sm transition-all duration-200 group"
-                    style={{ cursor: needsExpansion ? 'pointer' : 'move' }}
+                    style={{ cursor: needsExpansion ? 'pointer' : 'default' }}
                     onClick={(e) => {
                       // Only expand if clicking on the content area, not buttons
                       if ((e.target as HTMLElement).closest('button')) return;
@@ -452,126 +429,6 @@ export default function Index() {
               {draftNotes.length === 0 && (
                 <p className="text-[#71717A] text-sm text-center py-8">
                   No drafts yet. Start writing!
-                </p>
-              )}
-            </div>
-            </CardContent>
-          </Card>
-
-          {/* Ready Column */}
-          <Card
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, 'ready')}
-          >
-            <CardHeader>
-              <CardTitle>Ready</CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div className="space-y-3">
-              {readyNotes.map(note => {
-                const isExpanded = isNoteExpanded(note.id);
-                const needsExpansion = note.content.length > 150; // Rough estimate for 3 lines
-                
-                return (
-                  <div
-                    key={note.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, note)}
-                    className="bg-[#fffef9] rounded-lg p-4 hover:shadow-sm transition-all duration-200 group"
-                    style={{ cursor: needsExpansion ? 'pointer' : 'move' }}
-                    onClick={(e) => {
-                      // Only expand if clicking on the content area, not buttons
-                      if ((e.target as HTMLElement).closest('button')) return;
-                      if (needsExpansion) {
-                        e.preventDefault();
-                        toggleNoteExpanded(note.id);
-                      }
-                    }}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="default" className="text-xs">
-                        {note.tag}
-                      </Badge>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigator.clipboard.writeText(note.content);
-                        }}
-                        className="text-[#71717A] hover:text-black z-10"
-                      >
-                        <Check size={14} />
-                      </button>
-                    </div>
-                    <div className={cn(
-                      "text-sm text-black transition-all duration-200 prose prose-sm max-w-none",
-                      !isExpanded && "line-clamp-3"
-                    )}>
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h1: ({ children }) => (
-                            <h1 className="text-lg font-bold text-navy-blue mb-2">{children}</h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-base font-semibold text-navy-blue mb-2">{children}</h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-sm font-medium text-navy-blue mb-1">{children}</h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-4 space-y-1 mb-2">{children}</ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal pl-4 space-y-1 mb-2">{children}</ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-sm leading-relaxed">{children}</li>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold text-navy-blue">{children}</strong>
-                          ),
-                          em: ({ children }) => (
-                            <em className="italic">{children}</em>
-                          ),
-                          code: ({ children, className }) => {
-                            const isInline = !className;
-                            return isInline ? (
-                              <code className="px-1 py-0.5 bg-baby-blue text-navy-blue rounded text-xs">
-                                {children}
-                              </code>
-                            ) : (
-                              <code className={className}>{children}</code>
-                            );
-                          },
-                          a: ({ children, href }) => (
-                            <a href={href} className="text-blue-grotto hover:text-blue-green underline" target="_blank" rel="noopener noreferrer">
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {note.content}
-                      </ReactMarkdown>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-[#71717A]">
-                        Ready to publish
-                      </p>
-                      {needsExpansion && (
-                        <p className="text-xs text-blue-grotto opacity-0 group-hover:opacity-100 transition-opacity">
-                          {isExpanded ? 'Click to collapse' : 'Click to expand'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {readyNotes.length === 0 && (
-                <p className="text-[#71717A] text-sm text-center py-8">
-                  Drag polished notes here
                 </p>
               )}
             </div>

@@ -97,7 +97,7 @@ export const notes = pgTable('notes', {
   id: uuid('id').primaryKey().defaultRandom(),
   content: text('content').notNull(),
   tag: text('tag').notNull(),
-  status: text('status').notNull().default('draft'), // 'draft' | 'ready'
+  status: text('status').notNull().default('draft'), // only 'draft' status now
   originalContent: text('original_content'), // For storing content before AI styling
   wordCount: integer('word_count').notNull(),
   userId: text('user_id'), // For future multi-user support

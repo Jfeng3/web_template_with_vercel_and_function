@@ -12,14 +12,13 @@ interface NotesStore {
   selectedTag: string;
   wordCount: number;
   editingNote: string | null;
-  draggedNote: Note | null;
   
   // App State
   loading: boolean;
   error: string | null;
   
   // Filters
-  filterStatus: 'all' | 'draft' | 'ready';
+  filterStatus: 'all' | 'draft';
   filterTag: string | null;
   sidebarCollapsed: boolean;
   
@@ -39,8 +38,7 @@ interface NotesStore {
   setCurrentNote: (note: string) => void;
   setSelectedTag: (tag: string) => void;
   setEditingNote: (id: string | null) => void;
-  setDraggedNote: (note: Note | null) => void;
-  setFilterStatus: (status: 'all' | 'draft' | 'ready') => void;
+  setFilterStatus: (status: 'all' | 'draft') => void;
   setFilterTag: (tag: string | null) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setError: (error: string | null) => void;
@@ -66,7 +64,6 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
   selectedTag: '',
   wordCount: 0,
   editingNote: null,
-  draggedNote: null,
   
   // App State
   loading: false,
@@ -250,7 +247,6 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
   
   setEditingNote: (id) => set({ editingNote: id }),
   
-  setDraggedNote: (note) => set({ draggedNote: note }),
   
   setFilterStatus: (status) => set({ filterStatus: status }),
   

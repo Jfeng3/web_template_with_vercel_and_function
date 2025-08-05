@@ -4,7 +4,7 @@ export interface Note {
   id: string;
   content: string;
   tag: string;
-  status: 'draft' | 'ready';
+  status: 'draft';
   createdAt: Date;
   updatedAt: Date;
   originalContent?: string | null;
@@ -38,7 +38,7 @@ export const notesApi = {
       id: note.id,
       content: note.content,
       tag: note.tag,
-      status: note.status as 'draft' | 'ready',
+      status: 'draft',
       createdAt: new Date(note.created_at),
       updatedAt: new Date(note.updated_at),
       originalContent: note.original_content,
@@ -69,7 +69,7 @@ export const notesApi = {
       id: data.id,
       content: data.content,
       tag: data.tag,
-      status: data.status as 'draft' | 'ready',
+      status: 'draft',
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       originalContent: data.original_content,
@@ -102,7 +102,7 @@ export const notesApi = {
       id: data.id,
       content: data.content,
       tag: data.tag,
-      status: data.status as 'draft' | 'ready',
+      status: 'draft',
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       originalContent: data.original_content,

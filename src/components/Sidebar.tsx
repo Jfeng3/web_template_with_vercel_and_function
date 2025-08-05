@@ -16,12 +16,11 @@ export default function Sidebar() {
 
   const [activityData, setActivityData] = useState<{ date: Date; count: number }[]>([]);
   
-  // Calculate activity data from ready notes
+  // Calculate activity data from all notes
   useEffect(() => {
-    const readyNotes = notes.filter(n => n.status === 'ready');
     const activityMap = new Map<string, number>();
     
-    readyNotes.forEach(note => {
+    notes.forEach(note => {
       // Ensure we have a valid date
       if (!note.updatedAt) return;
       
@@ -52,7 +51,6 @@ export default function Sidebar() {
   
   // Calculate counts for filters
   const draftCount = notes.filter(n => n.status === 'draft').length;
-  const readyCount = notes.filter(n => n.status === 'ready').length;
   
   if (sidebarCollapsed) {
     return (
@@ -100,14 +98,6 @@ export default function Sidebar() {
             >
               <span>Drafts</span>
               <span className="text-xs">{draftCount}</span>
-            </button>
-            <button
-              onClick={() => setFilterStatus('ready')}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between
-                ${filterStatus === 'ready' ? 'bg-[#fffef9] text-black font-medium' : 'text-[#71717A] hover:bg-[#fffef9]'}`}
-            >
-              <span>Ready</span>
-              <span className="text-xs">{readyCount}</span>
             </button>
           </div>
         </div>
