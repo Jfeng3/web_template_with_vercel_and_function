@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit3 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNotesStore } from '../stores/notesStore';
 import Sidebar from '../components/Sidebar';
 import AIResponseModal from '../components/AIResponseModal';
 import { TextEditor } from '../components/TextEditor';
 import { ComparisonTextEditor } from '../components/ComparisonTextEditor';
 import { RephraseBox } from '../components/RephraseBox';
+import { NoteCard } from '../components/NoteCard';
 import { getCriticFeedback, getRephraseOptions } from '../api/openai';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { cn } from '../lib/utils';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 export default function Index() {
   const {
@@ -172,7 +169,7 @@ export default function Index() {
   const draftNotes = filtered.filter(n => n.status === 'draft');
 
   return (
-    <div className="min-h-screen bg-[#fffef9] flex">
+    <div className="min-h-screen bg-[#F5F5F5] flex">
       {/* Sidebar */}
       <Sidebar />
       
@@ -326,106 +323,17 @@ export default function Index() {
               <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
-            <div className="space-y-3">
-              {draftNotes.map(note => {
-                const isExpanded = isNoteExpanded(note.id);
-                const needsExpansion = note.content.length > 150; // Rough estimate for 3 lines
-                
-                return (
-                  <div
-                    key={note.id}
-                    className="bg-[#fffef9] rounded-lg p-4 hover:shadow-sm transition-all duration-200 group"
-                    style={{ cursor: needsExpansion ? 'pointer' : 'default' }}
-                    onClick={(e) => {
-                      // Only expand if clicking on the content area, not buttons
-                      if ((e.target as HTMLElement).closest('button')) return;
-                      if (needsExpansion) {
-                        e.preventDefault();
-                        toggleNoteExpanded(note.id);
-                      }
-                    }}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="default" className="text-xs">
-                        {note.tag}
-                      </Badge>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditNote(note.id);
-                        }}
-                        className="text-[#71717A] hover:text-black z-10"
-                      >
-                        <Edit3 size={14} />
-                      </button>
-                    </div>
-                    <div className={cn(
-                      "text-sm text-black transition-all duration-200 prose prose-sm max-w-none",
-                      !isExpanded && "line-clamp-3"
-                    )}>
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h1: ({ children }) => (
-                            <h1 className="text-lg font-bold text-navy-blue mb-2">{children}</h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-base font-semibold text-navy-blue mb-2">{children}</h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-sm font-medium text-navy-blue mb-1">{children}</h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-4 space-y-1 mb-2">{children}</ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal pl-4 space-y-1 mb-2">{children}</ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-sm leading-relaxed">{children}</li>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold text-navy-blue">{children}</strong>
-                          ),
-                          em: ({ children }) => (
-                            <em className="italic">{children}</em>
-                          ),
-                          code: ({ children, className }) => {
-                            const isInline = !className;
-                            return isInline ? (
-                              <code className="px-1 py-0.5 bg-baby-blue text-navy-blue rounded text-xs">
-                                {children}
-                              </code>
-                            ) : (
-                              <code className={className}>{children}</code>
-                            );
-                          },
-                          a: ({ children, href }) => (
-                            <a href={href} className="text-blue-grotto hover:text-blue-green underline" target="_blank" rel="noopener noreferrer">
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {note.content}
-                      </ReactMarkdown>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-[#71717A]">
-                        {note.content.split(/\s+/).filter(w => w).length} words
-                      </p>
-                      {needsExpansion && (
-                        <p className="text-xs text-blue-grotto opacity-0 group-hover:opacity-100 transition-opacity">
-                          {isExpanded ? 'Click to collapse' : 'Click to expand'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="space-y-[10px]">
+              {draftNotes.map(note => (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  isExpanded={isNoteExpanded(note.id)}
+                  onToggleExpand={() => toggleNoteExpanded(note.id)}
+                  onEdit={() => handleEditNote(note.id)}
+                  onDelete={() => deleteNote(note.id)}
+                />
+              ))}
               {draftNotes.length === 0 && (
                 <p className="text-[#71717A] text-sm text-center py-8">
                   No drafts yet. Start writing!

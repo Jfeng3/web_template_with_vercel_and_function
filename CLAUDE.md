@@ -18,6 +18,13 @@ pnpm install
 pnpm run dev  # Port 5173
 ```
 
+### Important: Bash Command Execution
+When running bash commands, do not run them in the background using "&". For example:
+- ✅ Correct: `pnpm dev`
+- ❌ Incorrect: `pnpm dev &`
+
+This ensures commands remain in the foreground for proper monitoring and control.
+
 ## Architecture
 
 ### Simple Structure
