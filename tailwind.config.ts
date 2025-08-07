@@ -19,20 +19,20 @@ export default {
 		extend: {
 			colors: {
 				// Custom Color Palette
-				'navy-blue': '#05445E',         // Deep primary for headers
-				'blue-grotto': '#189AB4',       // Main primary color
-				'blue-green': '#75E6DA',        // Accent color
-				'baby-blue': '#D4F1F4',         // Light backgrounds
+					'navy-blue': '#05445E',         // Deep primary for headers
+					'blue-grotto': '#189AB4',       // Main primary color
+					'blue-green': '#75E6DA',        // Accent color
+					'baby-blue': '#D4F1F4',         // Light backgrounds
 				
 				// High Contrast System from design_guidance.md
-				'primary-bg': '#fffef9',        // Cream page background
-				'primary-card': '#FFFFFF',      // Pure white cards
-				'primary-text': '#202124',      // Very dark gray for body text
-				'primary-heading': '#05445E',   // Navy Blue for headings
-				'primary-secondaryText': '#71717A', // Gray for metadata
-				'primary-accent': '#189AB4',    // Blue Grotto for primary actions
-				'ui-divider': '#E5E5EA',       // Light borders
-				'ui-placeholder': '#C7C7CC',   // Placeholder text
+					'primary-bg': 'hsl(var(--background))',        // maps to CSS variable
+					'primary-card': 'hsl(var(--card))',            // maps to CSS variable
+					'primary-text': 'hsl(var(--foreground))',      // maps to CSS variable
+					'primary-heading': '#05445E',                  // specific brand heading color
+					'primary-secondaryText': 'hsl(var(--muted-foreground))', // maps to CSS variable
+					'primary-accent': 'hsl(var(--primary))',       // maps to CSS variable
+					'ui-divider': 'hsl(var(--border))',            // maps to CSS variable
+					'ui-placeholder': 'hsl(var(--muted-foreground))',   // maps to CSS variable
 				border: "hsl(var(--border))",
 				input: "hsl(var(--input))",
 				ring: "hsl(var(--ring))",

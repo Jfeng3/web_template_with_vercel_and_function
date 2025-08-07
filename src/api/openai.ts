@@ -20,7 +20,7 @@ interface RephraseResponse {
 export async function getCriticFeedback(content: string): Promise<CriticResponse> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5',
       messages: [
         {
           role: 'system',
@@ -59,7 +59,7 @@ export async function getCriticFeedback(content: string): Promise<CriticResponse
 export async function getRephraseOptions(content: string): Promise<RephraseResponse> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5',
       messages: [
         {
           role: 'system',
