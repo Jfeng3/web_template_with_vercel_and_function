@@ -17,6 +17,12 @@ interface RephraseResponse {
   wordCount: number;
 }
 
+export interface PhraseSuggestion {
+  from: string;
+  to: string;
+  reason: string;
+}
+
 export async function getCriticFeedback(content: string): Promise<CriticResponse> {
   try {
     const response = await openai.chat.completions.create({
@@ -39,7 +45,6 @@ export async function getCriticFeedback(content: string): Promise<CriticResponse
           content: `Please analyze this note and provide feedback:\n\n${content}`
         }
       ],
-      max_completion_tokens: 500,
       temperature: 1
     });
     console.log('[OpenAI][CriticFeedback] Raw response:', response);
@@ -64,25 +69,38 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
       messages: [
         {
           role: 'system',
-          content: `You are a writing assistant that rephrases content to be simple, clear, and conversational.
-          change as less as possible. only if some phrases, words or sentence structure are unlikely to be used by native English speakers, please change them.
-          Keep the original meaning while making it:
-          - Simple: Use everyday language, avoid jargon
-          - Clear: Direct and easy to understand
-          - Conversational: Natural, like talking to a friend
-          - Concise: Stay under 300 words
+          content: `You are an expert English writing coach. Make the text sound native with the smallest necessary edits.
           
-          If the original content is Chinese, please translate it to English first.
-          Avoid complex sentences. Keep it human and relatable.
+          Editing policy:
+          - Make minimal, local changes; keep sentence count and order.
+          - Prefer idiomatic collocations and natural prepositions; replace awkward phrases.
+          - Keep the author's voice and tone; do not add new ideas.
+          - Preserve formatting, markdown, emojis, hashtags, numbers, names, and links.
+          - Only rewrite a whole sentence if it is clearly ungrammatical or unnatural.
+          - If a sentence is already natural, leave it unchanged.
+          - Target change budget: modify ≤ 15% of tokens. Keep length similar.
           
-          IMPORTANT: Return ONLY the rephrased text. Do not include any explanations, introductions, or comments like "Here's a simpler version:" or "I've rephrased this to be:". Just return the rephrased content directly.`
+          Idiomatic preferences (apply only if present; do not force):
+          - "in order to" → "to"
+          - "a lot of" → "many" / "much" (as appropriate)
+          - "due to the fact that" → "because"
+          - "make a decision" → "decide"
+          - "utilize" → "use"
+          - "regarding" → "about"
+          - "at this point in time" → "now"
+          - "provide me with" → "give me"
+          
+          Chinese handling:
+          - If the input is Chinese, translate to concise, natural English first.
+          
+          Output:
+          - Return ONLY the final text. No explanations or headings.`
         },
         {
           role: 'user',
           content: `Please rephrase this note to be simple, clear and conversational:\n\n${content}`
         }
       ],
-      max_completion_tokens: 600,
       temperature: 1
     });
     console.log('[OpenAI][RephraseOptions] Raw response:', response);
@@ -100,6 +118,85 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
   } catch (error) {
     console.error('OpenAI API error:', error);
     throw new Error('Failed to get rephrase options');
+  }
+}
+
+export async function getPhraseBank(original: string, rephrased?: string): Promise<PhraseSuggestion[]> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-5',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an English writing coach. Produce native phrase suggestions as precise, local swaps.
+          Output ONLY a JSON array (max 5) of objects: { "from": string, "to": string, "reason": string }.
+          Priorities:
+          1) First extract phrase-level substitutions that EXIST between Original and Rephrased (map original fragment -> rephrased fragment).
+          2) If fewer than 5, add additional high-confidence improvements directly applicable to the Rephrased text.
+          Requirements:
+          - Keep swaps local (collocations, prepositions, verb choice). No full-sentence rewrites.
+          - Ensure each "from" is a short substring (≤ 6 words).
+          - reason ≤ 12 words.
+          - High precision; skip uncertain changes.
+          - Escape quotes so the JSON parses.`
+        },
+        {
+          role: 'user',
+          content: `Original:\n${original}\n\nRephrased:\n${rephrased || ''}\n\nReturn JSON array ONLY.`
+        }
+      ],
+      temperature: 1
+    });
+
+    const raw = response.choices[0]?.message?.content?.trim() || '[]';
+    console.log('[OpenAI][PhraseBank] Raw response:', raw);
+    let parsed: PhraseSuggestion[] = [];
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      // Attempt to extract JSON block if wrapped in text
+      const match = raw.match(/\[([\s\S]*?)\]/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      }
+    }
+
+    let suggestions: PhraseSuggestion[] = [];
+    if (Array.isArray(parsed)) {
+      suggestions = parsed
+      .slice(0, 5)
+      .map(item => ({
+        from: String(item.from || '').slice(0, 120),
+        to: String(item.to || '').slice(0, 120),
+        reason: String(item.reason || '').slice(0, 120)
+      }))
+      .filter(s => s.from && s.to);
+    }
+
+    // Fallback heuristics if model returns nothing
+    if (!suggestions || suggestions.length === 0) {
+      const sourceText = rephrased || original;
+      const candidates: PhraseSuggestion[] = [];
+      const pushIfFound = (from: string, to: string, reason: string) => {
+        if (sourceText.toLowerCase().includes(from.toLowerCase())) {
+          candidates.push({ from, to, reason });
+        }
+      };
+      pushIfFound('in order to', 'to', 'More concise infinitive');
+      pushIfFound('a lot of', 'many', 'Concise, more precise');
+      pushIfFound('due to the fact that', 'because', 'Simpler connector');
+      pushIfFound('make a decision', 'decide', 'Use a strong verb');
+      pushIfFound('utilize', 'use', 'Prefer plain English');
+      pushIfFound('regarding', 'about', 'More natural preposition');
+      pushIfFound('really ', '', 'Remove intensifier');
+      pushIfFound('very ', '', 'Remove intensifier');
+      suggestions = candidates.slice(0, 5);
+    }
+
+    return suggestions;
+  } catch (error) {
+    console.error('OpenAI API error (phrase bank):', error);
+    return [];
   }
 }
 

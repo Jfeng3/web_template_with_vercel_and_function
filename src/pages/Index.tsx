@@ -296,8 +296,12 @@ export default function Index() {
                       rephraseResponse={rephraseResponse}
                       isLoading={rephraseLoading}
                       onApply={handleApplyRephrase}
+                      onPartialApply={(updated) => {
+                        setCurrentNote(updated);
+                      }}
                       onClose={handleCloseRephrase}
                       originalText={currentNote}
+                      baseText={currentNote}
                     />
                   </div>
                 )}
