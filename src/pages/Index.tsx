@@ -30,6 +30,7 @@ export default function Index() {
     loadWeeklyTags,
     createNote,
     updateNote,
+    deleteNote,
     setIsWriting,
     setCurrentNote,
     setSelectedTag,

@@ -39,9 +39,10 @@ export async function getCriticFeedback(content: string): Promise<CriticResponse
           content: `Please analyze this note and provide feedback:\n\n${content}`
         }
       ],
-      max_tokens: 500,
-      temperature: 0.7
+      max_completion_tokens: 500,
+      temperature: 1
     });
+    console.log('[OpenAI][CriticFeedback] Raw response:', response);
 
     const feedback = response.choices[0]?.message?.content || '';
     
@@ -81,9 +82,10 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
           content: `Please rephrase this note to be simple, clear and conversational:\n\n${content}`
         }
       ],
-      max_tokens: 600,
-      temperature: 0.8
+      max_completion_tokens: 600,
+      temperature: 1
     });
+    console.log('[OpenAI][RephraseOptions] Raw response:', response);
 
     let rephrased = response.choices[0]?.message?.content || '';
     
