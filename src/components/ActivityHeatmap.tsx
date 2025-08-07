@@ -20,9 +20,10 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // Calculate the first day (12 weeks ago, starting from Sunday)
+  // Calculate the first day (12 weeks ago), align to the start of the week (Monday)
   const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - (weeks * 7) + (7 - today.getDay()));
+  const dayOfWeek = (today.getDay() + 6) % 7; // 0 = Monday ... 6 = Sunday
+  startDate.setDate(startDate.getDate() - (weeks * 7) - dayOfWeek);
   
   // Create a map for quick lookup
   const dataMap = new Map<string, number>();
@@ -62,7 +63,25 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-start gap-2">
-        <div className="w-4" /> {/* Spacer for day labels */}
+        {/* Day labels aligned with heatmap rows */}
+        <div
+          className="w-5 text-xs text-[#71717A]"
+          style={{ paddingTop: 20 }}
+        >
+          {Array.from({ length: daysOfWeek }).map((_, index) => (
+            <div
+              key={index}
+              style={{
+                height: cellSize,
+                marginBottom: index === daysOfWeek - 1 ? 0 : cellGap,
+                fontSize: 10,
+                lineHeight: `${cellSize}px`,
+              }}
+            >
+              {(index === 1 || index === 3 || index === 5) ? days[index] : ''}
+            </div>
+          ))}
+        </div>
         <svg width={weeks * (cellSize + cellGap)} height={daysOfWeek * (cellSize + cellGap) + 20}>
           {/* Month labels */}
           {grid.map((week, weekIndex) => {
@@ -108,16 +127,6 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         </svg>
       </div>
       
-      {/* Day labels */}
-      <div className="flex items-center gap-2">
-        <div className="w-4 flex flex-col gap-[3px] text-xs text-[#71717A]">
-          {days.map((day, index) => (
-            <div key={index} className="h-3 leading-3" style={{ fontSize: '10px' }}>
-              {index % 2 === 0 ? day : ''}
-            </div>
-          ))}
-        </div>
-      </div>
       
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-[#71717A]">
