@@ -70,16 +70,20 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
         {
           role: 'system',
           content: `You are an expert English writing coach. Make the text sound native with the smallest necessary edits.
-          
+
+          Priorities (in order):
+          1) Native phrasing: improve collocations, verb choice, and prepositions; replace awkward phrases with idiomatic ones.
+          2) Sentence structure: if the original structure is clearly poor, split/merge/reorder clauses for clarity and flow.
+          3) Ignore minor grammar, capitalization, or cosmetic punctuation unless meaning/clarity suffers.
+
           Editing policy:
-          - Make minimal, local changes; keep sentence count and order.
-          - Prefer idiomatic collocations and natural prepositions; replace awkward phrases.
+          - Make minimal, local changes when structure is fine; keep sentence count and order.
           - Keep the author's voice and tone; do not add new ideas.
-          - Preserve formatting, markdown, emojis, hashtags, numbers, names, and links.
-          - Only rewrite a whole sentence if it is clearly ungrammatical or unnatural.
-          - If a sentence is already natural, leave it unchanged.
+          - Preserve formatting, markdown, emojis, hashtags, numbers, names, and links (do not change casing of hashtags or proper nouns).
+          - Only rewrite a whole sentence if the structure is clearly unnatural or confusing.
+          - If a sentence is already natural, leave it untouched.
           - Target change budget: modify ≤ 15% of tokens. Keep length similar.
-          
+
           Idiomatic preferences (apply only if present; do not force):
           - "in order to" → "to"
           - "a lot of" → "many" / "much" (as appropriate)
@@ -89,10 +93,10 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
           - "regarding" → "about"
           - "at this point in time" → "now"
           - "provide me with" → "give me"
-          
+
           Chinese handling:
           - If the input is Chinese, translate to concise, natural English first.
-          
+
           Output:
           - Return ONLY the final text. No explanations or headings.`
         },
@@ -131,8 +135,9 @@ export async function getPhraseBank(original: string, rephrased?: string): Promi
           content: `You are an English writing coach. Produce native phrase suggestions as precise, local swaps.
           Output ONLY a JSON array (max 5) of objects: { "from": string, "to": string, "reason": string }.
           Priorities:
-          1) First extract phrase-level substitutions that EXIST between Original and Rephrased (map original fragment -> rephrased fragment).
-          2) If fewer than 5, add additional high-confidence improvements directly applicable to the Rephrased text.
+          1) Native phrase usage: extract phrase-level substitutions that EXIST between Original and Rephrased (map original fragment -> rephrased fragment).
+          2) If sentence structure was improved (split/merge/reorder), still surface local swaps that reflect the native choices.
+          3) If fewer than 5, add additional high-confidence improvements directly applicable to the Rephrased text.
           Requirements:
           - Keep swaps local (collocations, prepositions, verb choice). No full-sentence rewrites.
           - Ensure each "from" is a short substring (≤ 6 words).
