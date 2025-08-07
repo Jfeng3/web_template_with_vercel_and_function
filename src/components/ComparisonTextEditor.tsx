@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
-import { 
-  Image, 
-  RefreshCw,
-  Lightbulb,
-  Sparkles,
-  Send
-} from 'lucide-react';
+import { RefreshCw, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -82,29 +76,10 @@ export function ComparisonTextEditor({
   };
 
   const toolbarButtons: ToolbarButton[] = [
-    // Essential tools only
-    {
-      icon: <Image className="w-5 h-5" />,
-      label: 'Insert image',
-      action: () => console.log('Insert image'),
-      group: 'ai'
-    },
     {
       icon: <RefreshCw className="w-5 h-5" />,
       label: 'Rephrase',
       action: () => onRephrase?.(),
-      group: 'ai'
-    },
-    {
-      icon: <Lightbulb className="w-5 h-5" />,
-      label: 'Critic',
-      action: () => onCritic?.(),
-      group: 'ai'
-    },
-    {
-      icon: <Sparkles className="w-5 h-5" />,
-      label: 'Apply my style',
-      action: () => onApplyStyle?.(),
       group: 'ai'
     }
   ];
@@ -129,7 +104,7 @@ export function ComparisonTextEditor({
                 variant="ghost"
                 size="sm"
                 onClick={button.action}
-                disabled={disabled || (button.label !== 'Insert image' && (isLoading || !editor?.getText().trim()))}
+                disabled={disabled || isLoading || !editor?.getText().trim()}
                 className="h-9 w-9 p-0 hover:bg-[#D4F1F4] text-gray-600 hover:text-[#05445E]"
                 title={button.label}
               >
