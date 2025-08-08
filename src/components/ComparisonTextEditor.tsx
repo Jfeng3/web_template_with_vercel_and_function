@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { RefreshCw, Send, Mic, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSpeechToText } from '@/hooks/use-speech-to-text';
+import { useRealtimeTranscription } from '@/hooks/use-realtime-transcription';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -65,13 +65,35 @@ export function ComparisonTextEditor({
     },
   });
 
-  const { isSupported, isRecording, interimText, start, stop } = useSpeechToText({
-    onFinal: (text) => {
-      const base = editor?.getText() || '';
-      const sep = base && !base.endsWith('\n') ? '\n' : '';
-      editor?.commands.setContent(base + sep + text);
-      onChange?.(base + sep + text);
+  // Real-time transcription
+  const baseContentRef = useRef('');
+  const { isSupported, isRecording, interimTranscript, error, start, stop } = useRealtimeTranscription({
+    onTranscript: (text, isFinal) => {
+      if (isFinal) {
+        // Add final transcript to the content
+        const currentContent = editor?.getText() || '';
+        const separator = currentContent && !currentContent.endsWith(' ') && !currentContent.endsWith('\n') ? ' ' : '';
+        const newContent = currentContent + separator + text;
+        editor?.commands.setContent(newContent);
+        onChange?.(newContent);
+        baseContentRef.current = newContent;
+      } else {
+        // Update with interim transcript (real-time display)
+        if (!baseContentRef.current) {
+          baseContentRef.current = editor?.getText() || '';
+        }
+        const separator = baseContentRef.current && !baseContentRef.current.endsWith(' ') && !baseContentRef.current.endsWith('\n') ? ' ' : '';
+        const tempContent = baseContentRef.current + separator + text;
+        editor?.commands.setContent(tempContent);
+      }
     },
+    onError: (error) => {
+      toast({
+        title: 'Transcription Error',
+        description: error,
+        variant: 'destructive'
+      });
+    }
   });
 
   // Sync external value changes with editor
@@ -95,14 +117,24 @@ export function ComparisonTextEditor({
       group: 'ai'
     },
     {
-      icon: isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />,
-      label: isRecording ? 'Stop recording' : 'Record',
+      icon: isRecording ? 
+        <Square className="w-5 h-5 text-red-500 animate-pulse" /> : 
+        <Mic className="w-5 h-5" />,
+      label: isRecording ? 'Stop recording' : 'Start recording',
       action: () => {
         if (!isSupported) {
-          toast({ title: 'Speech not supported', description: 'Your browser does not support speech recognition.' });
+          toast({ 
+            title: 'Speech not supported', 
+            description: 'Your browser does not support speech recognition.',
+            variant: 'destructive'
+          });
           return;
         }
-        if (isRecording) stop(); else start();
+        if (isRecording) {
+          stop();
+        } else {
+          start();
+        }
       },
       group: 'ai'
     }
@@ -111,7 +143,8 @@ export function ComparisonTextEditor({
   if (showComparison) {
     return (
       <div className={cn(
-        "w-full rounded-lg border-2 border-[#75E6DA] bg-white",
+        "w-full rounded-lg border-2 bg-white transition-all duration-300",
+        isRecording ? "border-red-400 shadow-lg shadow-red-100" : "border-[#75E6DA]",
         className
       )}>
         <div className="prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4 text-[#202124]">
@@ -152,13 +185,24 @@ export function ComparisonTextEditor({
 
   return (
     <div className={cn(
-      "w-full rounded-lg border-2 border-[#75E6DA] bg-white",
+      "w-full rounded-lg border-2 bg-white transition-all duration-300",
+      isRecording ? "border-red-400 shadow-lg shadow-red-100" : "border-[#75E6DA]",
       className
     )}>
       <EditorContent 
         editor={editor} 
         className="text-[#202124]"
       />
+      
+      {isRecording && (
+        <div className="px-4 py-2 bg-red-50 border-t border-red-200 flex items-center gap-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <span className="text-sm text-red-600 font-medium">Recording... Speak now</span>
+          {interimTranscript && (
+            <span className="text-sm text-gray-500 italic ml-2">"{interimTranscript}"</span>
+          )}
+        </div>
+      )}
       
       <div className="flex items-center justify-between p-3 border-t border-gray-100">
         <div className="flex items-center gap-1">
@@ -168,7 +212,7 @@ export function ComparisonTextEditor({
               variant="ghost"
               size="sm"
               onClick={button.action}
-              disabled={disabled || (button.label !== 'Insert image' && (isLoading || !editor?.getText().trim()))}
+              disabled={disabled || (button.label === 'Rephrase' ? (isLoading || !editor?.getText().trim()) : false)}
               className="h-9 w-9 p-0 hover:bg-[#D4F1F4] text-gray-600 hover:text-[#05445E]"
               title={button.label}
             >
