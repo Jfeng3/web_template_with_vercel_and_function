@@ -23,10 +23,91 @@ export interface PhraseSuggestion {
   reason: string;
 }
 
+export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  try {
+    // First attempt: send original blob as-is (preferred)
+    const t = (audioBlob as any)?.type || 'audio/webm';
+    const ext = t.includes('mp4') ? 'mp4' : t.includes('mpeg') ? 'mp3' : t.includes('webm') ? 'webm' : 'dat';
+    const originalFile = new File([audioBlob], `audio.${ext}` , { type: t });
+    try {
+      const res1 = await openai.audio.transcriptions.create({ file: originalFile, model: 'gpt-4o-transcribe', response_format: 'json' as any });
+      const text1 = (res1 as any)?.text || (res1 as any)?.data?.text || '';
+      if (String(text1 || '').trim()) return String(text1).trim();
+    } catch (e) {
+      // fall through to WAV conversion
+    }
+
+    // Fallback: convert to WAV and retry
+    const wavBlob = await convertToWav(audioBlob);
+    const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
+    const res2 = await openai.audio.transcriptions.create({ file: wavFile, model: 'gpt-4o-transcribe', response_format: 'json' as any });
+    const text2 = (res2 as any)?.text || (res2 as any)?.data?.text || '';
+    return String(text2 || '').trim();
+  } catch (error) {
+    console.error('OpenAI transcription error:', error);
+    throw new Error('Failed to transcribe audio');
+  }
+}
+
+async function convertToWav(blob: Blob): Promise<Blob> {
+  const arrayBuffer = await blob.arrayBuffer();
+  // @ts-ignore - webkitAudioContext for Safari
+  const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+  const audioContext = new AudioCtx();
+  const audioBuffer: AudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  const numChannels = audioBuffer.numberOfChannels;
+  const sampleRate = audioBuffer.sampleRate;
+  const length = audioBuffer.length * numChannels * 2 + 44;
+  const buffer = new ArrayBuffer(length);
+  const view = new DataView(buffer);
+
+  // WAV header
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + audioBuffer.length * numChannels * 2, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // PCM
+  view.setUint16(20, 1, true); // Linear quantization
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  view.setUint16(32, numChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, audioBuffer.length * numChannels * 2, true);
+
+  // Interleave channels and write PCM samples
+  let offset = 44;
+  const channels: Float32Array[] = [];
+  for (let i = 0; i < numChannels; i++) {
+    channels.push(audioBuffer.getChannelData(i));
+  }
+
+  for (let i = 0; i < audioBuffer.length; i++) {
+    for (let ch = 0; ch < numChannels; ch++) {
+      let sample = channels[ch][i];
+      // clamp
+      sample = Math.max(-1, Math.min(1, sample));
+      // convert to 16-bit PCM
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      offset += 2;
+    }
+  }
+
+  return new Blob([view], { type: 'audio/wav' });
+}
+
+function writeString(view: DataView, offset: number, str: string) {
+  for (let i = 0; i < str.length; i++) {
+    view.setUint8(offset + i, str.charCodeAt(i));
+  }
+}
+
 export async function getCriticFeedback(content: string): Promise<CriticResponse> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5',
+      model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
@@ -65,37 +146,36 @@ export async function getCriticFeedback(content: string): Promise<CriticResponse
 export async function getRephraseOptions(content: string): Promise<RephraseResponse> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5',
+      model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
-          content: `You are an expert English writing coach. Make the text sound native with the smallest necessary edits.
+          content: `You are an American English writing coach. Make the text sound like natural, conversational American English.
 
-          Priorities (in order):
-          1) Native phrasing: improve collocations, verb choice, and prepositions; replace awkward phrases with idiomatic ones.
-          2) Sentence structure: if the original structure is clearly poor, split/merge/reorder clauses for clarity and flow.
-          3) Ignore minor grammar, capitalization, or cosmetic punctuation unless meaning/clarity suffers.
+          Focus on conversational American phrasing:
+          - Use everyday expressions
+          - Choose simple, direct words over formal alternatives
+          - Make it sound like how Americans actually speak
 
-          Editing policy:
-          - Make minimal, local changes when structure is fine; keep sentence count and order.
-          - Keep the author's voice and tone; do not add new ideas.
-          - Preserve formatting, markdown, emojis, hashtags, numbers, names, and links (do not change casing of hashtags or proper nouns).
-          - Only rewrite a whole sentence if the structure is clearly unnatural or confusing.
-          - If a sentence is already natural, leave it untouched.
-          - Target change budget: modify ≤ 15% of tokens. Keep length similar.
+          Editing approach:
+          - Prioritize conversational tone over perfect grammar
+          - Keep the author's voice but make it more naturally American
+          - Preserve formatting, markdown, emojis, hashtags, numbers, names, and links
+          - Only rewrite if something sounds unnatural or unclear to American ears
+          - Target minimal changes - modify only what needs to sound more conversational
 
-          Idiomatic preferences (apply only if present; do not force):
-          - "in order to" → "to"
-          - "a lot of" → "many" / "much" (as appropriate)
-          - "due to the fact that" → "because"
-          - "make a decision" → "decide"
+          Common conversational swaps (apply where natural):
+          - "obtain" → "get"
+          - "purchase" → "buy"
+          - "commence" → "start"
           - "utilize" → "use"
           - "regarding" → "about"
-          - "at this point in time" → "now"
+          - "assist" → "help"
+          - "inquire" → "ask"
           - "provide me with" → "give me"
 
           Chinese handling:
-          - If the input is Chinese, translate to concise, natural English first.
+          - If the input is Chinese, translate to conversational American English.
 
           Output:
           - Return ONLY the final text. No explanations or headings.`
@@ -128,22 +208,34 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
 export async function getPhraseBank(original: string, rephrased?: string): Promise<PhraseSuggestion[]> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5',
+      model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
-          content: `You are an English writing coach. Produce native phrase suggestions as precise, local swaps.
+          content: `You are an American English writing coach. Produce native phrase suggestions as precise, local swaps.
           Output ONLY a JSON array (max 5) of objects: { "from": string, "to": string, "reason": string }.
+          
+          Focus ONLY on simple, conversational American phrasing:
+          - Natural everyday expressions native Americans actually use
+          - Conversational word choices (e.g., "get" vs "obtain", "talk about" vs "discuss")
+          
+          IGNORE completely:
+          - Grammar mistakes or corrections
+          - Capitalization or punctuation issues
+          - Formal, academic, or business language
+          - British English or other variants
+          
           Priorities:
-          1) Native phrase usage: extract phrase-level substitutions that EXIST between Original and Rephrased (map original fragment -> rephrased fragment).
-          2) If sentence structure was improved (split/merge/reorder), still surface local swaps that reflect the native choices.
-          3) If fewer than 5, add additional high-confidence improvements directly applicable to the Rephrased text.
+          1) Extract phrase swaps that make text sound more conversational and natural
+          2) Focus on how Americans actually speak in everyday conversation
+          3) Suggest simple, direct phrasings over formal alternatives
+          
           Requirements:
-          - Keep swaps local (collocations, prepositions, verb choice). No full-sentence rewrites.
-          - Ensure each "from" is a short substring (≤ 6 words).
-          - reason ≤ 12 words.
-          - High precision; skip uncertain changes.
-          - Escape quotes so the JSON parses.`
+          - Keep swaps local (≤ 6 words)
+          - Make it sound conversational and natural
+          - reason ≤ 12 words, focus on "more natural/conversational"
+          - Skip grammar/capitalization fixes
+          - Escape quotes so the JSON parses`
         },
         {
           role: 'user',
