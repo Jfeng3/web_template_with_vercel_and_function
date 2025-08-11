@@ -67,14 +67,16 @@ export function TextEditor({
   const baseContentRef = useRef('');
   const { isSupported, isRecording, interimTranscript, error, start, stop } = useRealtimeTranscription({
     onTranscript: (text, isFinal) => {
+      console.log('[TextEditor onTranscript] Received:', text, 'isFinal:', isFinal);
       if (isFinal) {
         // Add final transcript to the content
-        const currentContent = editor?.getText() || '';
-        const separator = currentContent && !currentContent.endsWith(' ') && !currentContent.endsWith('\n') ? ' ' : '';
-        const newContent = currentContent + separator + text;
+        // Use the base content (before interim) as the starting point
+        const baseContent = baseContentRef.current || editor?.getText() || '';
+        const separator = baseContent && !baseContent.endsWith(' ') && !baseContent.endsWith('\n') ? ' ' : '';
+        const newContent = baseContent + separator + text;
         editor?.commands.setContent(newContent);
         onChange?.(newContent);
-        baseContentRef.current = newContent;
+        baseContentRef.current = ''; // Reset for next speech segment
       } else {
         // Update with interim transcript (real-time display)
         if (!baseContentRef.current) {

@@ -13,6 +13,17 @@ export function useRealtimeTranscription(options: UseRealtimeTranscriptionOption
   const [isSupported, setIsSupported] = useState(false);
   
   const recognitionRef = useRef<any>(null);
+  const onTranscriptRef = useRef(onTranscript);
+  const onErrorRef = useRef(onError);
+  
+  // Update refs when callbacks change
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
+  
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
   
   useEffect(() => {
     // Check for browser support
@@ -48,11 +59,12 @@ export function useRealtimeTranscription(options: UseRealtimeTranscriptionOption
       }
       
       if (finalText) {
+        console.log('[Final text] Calling onTranscript with:', finalText);
         setInterimTranscript('');
-        onTranscript?.(finalText, true);
+        onTranscriptRef.current?.(finalText, true);
       } else if (interimText) {
         setInterimTranscript(interimText);
-        onTranscript?.(interimText, false);
+        onTranscriptRef.current?.(interimText, false);
       }
     };
     
@@ -82,7 +94,7 @@ export function useRealtimeTranscription(options: UseRealtimeTranscriptionOption
       }
       
       setError(errorMessage);
-      onError?.(errorMessage);
+      onErrorRef.current?.(errorMessage);
       setIsRecording(false);
       setInterimTranscript('');
     };
@@ -105,7 +117,7 @@ export function useRealtimeTranscription(options: UseRealtimeTranscriptionOption
         recognitionRef.current = null;
       }
     };
-  }, [onTranscript, onError]);
+  }, []); // Empty dependency array - setup only once
 
   const start = useCallback(async () => {
     if (!recognitionRef.current || !isSupported) {
