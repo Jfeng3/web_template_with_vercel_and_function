@@ -129,10 +129,14 @@ export function useRealtimeTranscription(options: UseRealtimeTranscriptionOption
   }, [isSupported, isRecording]);
 
   const stop = useCallback(() => {
-    if (recognitionRef.current && isRecording) {
-      recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      // Immediately update state without waiting for onend event
+      setIsRecording(false);
+      setInterimTranscript('');
+      // Use abort() for immediate termination instead of stop()
+      recognitionRef.current.abort();
     }
-  }, [isRecording]);
+  }, []);
 
   return {
     isSupported,
