@@ -20,6 +20,7 @@ interface ComparisonTextEditorProps {
   isLoading?: boolean;
   className?: string;
   showComparison?: boolean;
+  wordCount?: number;
 }
 
 interface ToolbarButton {
@@ -40,7 +41,8 @@ export function ComparisonTextEditor({
   disabled = false,
   isLoading = false,
   className,
-  showComparison = false
+  showComparison = false,
+  wordCount = 0
 }: ComparisonTextEditorProps) {
   const { toast } = useToast();
   const editor = useEditor({
@@ -170,14 +172,19 @@ export function ComparisonTextEditor({
             ))}
           </div>
           
-          <Button
-            onClick={handleSubmit}
-            size="sm"
-            disabled={disabled || !editor?.getText().trim()}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
+              {wordCount}/300 words
+            </div>
+            <Button
+              onClick={handleSubmit}
+              size="sm"
+              disabled={disabled || !editor?.getText().trim()}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -221,14 +228,19 @@ export function ComparisonTextEditor({
           ))}
         </div>
         
-        <Button
-          onClick={handleSubmit}
-          size="sm"
-          disabled={disabled || !editor?.getText().trim()}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-4"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
+            {wordCount}/300 words
+          </div>
+          <Button
+            onClick={handleSubmit}
+            size="sm"
+            disabled={disabled || !editor?.getText().trim()}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

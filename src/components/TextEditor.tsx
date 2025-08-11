@@ -19,6 +19,7 @@ interface TextEditorProps {
   disabled?: boolean;
   isLoading?: boolean;
   className?: string;
+  wordCount?: number;
 }
 
 interface ToolbarButton {
@@ -38,7 +39,8 @@ export function TextEditor({
   onApplyStyle,
   disabled = false,
   isLoading = false,
-  className 
+  className,
+  wordCount = 0
 }: TextEditorProps) {
   const { toast } = useToast();
   const editor = useEditor({
@@ -178,14 +180,19 @@ export function TextEditor({
           ))}
         </div>
         
-        <Button
-          onClick={handleSubmit}
-          size="sm"
-          disabled={disabled || !editor?.getText().trim()}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-4"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
+            {wordCount}/300 words
+          </div>
+          <Button
+            onClick={handleSubmit}
+            size="sm"
+            disabled={disabled || !editor?.getText().trim()}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -243,11 +243,12 @@ export default function Index() {
       )}
 
       {/* Main Content */}
-      <div className="px-8 py-8 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Writing Panel */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="mb-4">
+        <div className="max-w-4xl mb-0">
+          <Card>
+            <CardContent className="p-1">
+            <div>
               <div className={`flex gap-4 ${rephraseResponse || rephraseLoading ? '' : 'justify-center'}`}>
                 <div className={`${rephraseResponse || rephraseLoading ? 'flex-1' : 'w-full'} transition-all duration-300`}>
                   {rephraseResponse || rephraseLoading ? (
@@ -268,6 +269,7 @@ export default function Index() {
                       disabled={loading}
                       isLoading={aiLoading}
                       showComparison={true}
+                      wordCount={wordCount}
                     />
                   ) : (
                     <TextEditor
@@ -286,6 +288,7 @@ export default function Index() {
                       }}
                       disabled={loading}
                       isLoading={aiLoading}
+                      wordCount={wordCount}
                     />
                   )}
                 </div>
@@ -306,22 +309,17 @@ export default function Index() {
                   </div>
                 )}
               </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <div className={`text-sm ${wordCount > 300 ? 'text-red-500' : 'text-[#71717A]'}`}>
-                  {wordCount}/300 words
-                </div>
-              </div>
             </div>
 
             <div className="flex items-center gap-4">
               {/* Tags and buttons removed - Send button in TextEditor handles saving */}
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </div>
 
         {/* Notes Board */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl">
           {/* Notes Column */}
           <Card>
             <CardHeader>
