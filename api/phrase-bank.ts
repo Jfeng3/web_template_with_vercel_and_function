@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getPhraseBank } from './openai-service';
+import { getPhraseBank } from './openai-service.js';
 
 export default async function handler(
   req: VercelRequest,

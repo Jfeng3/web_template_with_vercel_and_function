@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRephraseOptions } from './openai-service';
+import { getRephraseOptions } from './openai-service.js';
 
 export default async function handler(
   req: VercelRequest,
