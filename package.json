@@ -40,6 +40,7 @@
     "@types/node": "^24.0.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^5.3.11",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.31.4",
