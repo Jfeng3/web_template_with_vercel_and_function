@@ -54,7 +54,7 @@ function extractAlternatives(rephrased: string): string[] {
 export async function getRephraseOptions(content: string): Promise<RephraseResponse> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
@@ -114,7 +114,7 @@ export async function getRephraseOptions(content: string): Promise<RephraseRespo
 export async function getPhraseBank(original: string, rephrased?: string): Promise<PhraseSuggestion[]> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1',
       messages: [
         {
           role: 'system',
