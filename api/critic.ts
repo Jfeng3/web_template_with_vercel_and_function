@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRephraseOptions } from './openai-service.js';
+import { getCriticFeedback } from './openai-service.js';
 
 const handler = async (
   req: VercelRequest,
@@ -27,18 +27,18 @@ const handler = async (
     }
 
     // Call OpenAI service
-    const response = await getRephraseOptions(content);
+    const response = await getCriticFeedback(content);
     
     // Return successful response
     res.status(200).json(response);
   } catch (error) {
-    console.error('Rephrase endpoint error:', error);
+    console.error('Critic endpoint error:', error);
     
     // Return appropriate error message
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     res.status(500).json({ 
       error: errorMessage,
-      message: 'Failed to process rephrase request'
+      message: 'Failed to process critic request'
     });
   }
 };

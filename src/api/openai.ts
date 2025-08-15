@@ -1,11 +1,5 @@
-import OpenAI from 'openai';
-
-// OpenAI client is still needed for transcription (runs client-side)
-// Rephrase functions will use backend API
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-});
+// All OpenAI functionality now uses backend APIs
+// Audio conversion utilities remain client-side
 
 interface CriticResponse {
   feedback: string;
@@ -30,23 +24,48 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     // First attempt: send original blob as-is (preferred)
     const t = (audioBlob as any)?.type || 'audio/webm';
     const ext = t.includes('mp4') ? 'mp4' : t.includes('mpeg') ? 'mp3' : t.includes('webm') ? 'webm' : 'dat';
-    const originalFile = new File([audioBlob], `audio.${ext}` , { type: t });
+    
+    // Try original format first
     try {
-      const res1 = await openai.audio.transcriptions.create({ file: originalFile, model: 'gpt-4o-transcribe', response_format: 'json' as any });
-      const text1 = (res1 as any)?.text || (res1 as any)?.data?.text || '';
-      if (String(text1 || '').trim()) return String(text1).trim();
+      const response1 = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'X-Filename': `audio.${ext}`,
+        },
+        body: audioBlob,
+      });
+
+      if (response1.ok) {
+        const data1 = await response1.json();
+        const text1 = data1.text || '';
+        if (String(text1 || '').trim()) return String(text1).trim();
+      }
     } catch (e) {
       // fall through to WAV conversion
     }
 
     // Fallback: convert to WAV and retry
     const wavBlob = await convertToWav(audioBlob);
-    const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
-    const res2 = await openai.audio.transcriptions.create({ file: wavFile, model: 'gpt-4o-transcribe', response_format: 'json' as any });
-    const text2 = (res2 as any)?.text || (res2 as any)?.data?.text || '';
+    const response2 = await fetch('/api/transcribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-Filename': 'audio.wav',
+      },
+      body: wavBlob,
+    });
+
+    if (!response2.ok) {
+      const error = await response2.json();
+      throw new Error(error.message || 'Failed to transcribe audio');
+    }
+
+    const data2 = await response2.json();
+    const text2 = data2.text || '';
     return String(text2 || '').trim();
   } catch (error) {
-    console.error('OpenAI transcription error:', error);
+    console.error('Transcription API error:', error);
     throw new Error('Failed to transcribe audio');
   }
 }
@@ -108,39 +127,25 @@ function writeString(view: DataView, offset: number, str: string) {
 
 export async function getCriticFeedback(content: string): Promise<CriticResponse> {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a writing critic focused on helping content creators improve their daily notes. 
-          Analyze the content for:
-          - Clarity and readability
-          - Engagement potential
-          - Structure and flow
-          - Conciseness (target: under 300 words)
-          - Impact and value
-          
-          Provide constructive feedback and actionable suggestions.`
-        },
-        {
-          role: 'user',
-          content: `Please analyze this note and provide feedback:\n\n${content}`
-        }
-      ],
-      temperature: 1
+    const response = await fetch('/api/critic', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
     });
-    console.log('[OpenAI][CriticFeedback] Raw response:', response);
 
-    const feedback = response.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get critic feedback');
+    }
+
+    const data = await response.json();
+    console.log('[API][CriticFeedback] Response:', data);
     
-    return {
-      feedback,
-      suggestions: extractSuggestions(feedback),
-      score: Math.floor(Math.random() * 40) + 60 // Mock score 60-100
-    };
+    return data;
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('Critic API error:', error);
     throw new Error('Failed to get critic feedback');
   }
 }
@@ -196,7 +201,3 @@ export async function getPhraseBank(original: string, rephrased?: string): Promi
   }
 }
 
-function extractSuggestions(feedback: string): string[] {
-  const lines = feedback.split('\n').filter(line => line.trim());
-  return lines.slice(0, 3).map(line => line.replace(/^[-•*]\s*/, '').trim());
-}

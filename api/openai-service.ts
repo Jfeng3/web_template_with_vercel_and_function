@@ -18,6 +18,12 @@ export interface PhraseSuggestion {
   reason: string;
 }
 
+export interface CriticResponse {
+  feedback: string;
+  suggestions: string[];
+  score: number;
+}
+
 // Helper function to clean rephrase responses
 function cleanRephraseResponse(text: string): string {
   const prefacingPatterns = [
@@ -200,5 +206,90 @@ export async function getPhraseBank(original: string, rephrased?: string): Promi
   } catch (error) {
     console.error('OpenAI API error (phrase bank):', error);
     return [];
+  }
+}
+
+// Helper function to extract suggestions from critic feedback
+function extractSuggestions(feedback: string): string[] {
+  const lines = feedback.split('\n').filter(line => line.trim());
+  return lines.slice(0, 3).map(line => line.replace(/^[-•*]\s*/, '').trim());
+}
+
+// Critic feedback function
+export async function getCriticFeedback(content: string): Promise<CriticResponse> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a writing critic focused on helping content creators improve their daily notes. 
+          Analyze the content for:
+          - Clarity and readability
+          - Engagement potential
+          - Structure and flow
+          - Conciseness (target: under 300 words)
+          - Impact and value
+          
+          Provide constructive feedback and actionable suggestions.`
+        },
+        {
+          role: 'user',
+          content: `Please analyze this note and provide feedback:\n\n${content}`
+        }
+      ],
+      temperature: 1
+    });
+    console.log('[OpenAI][CriticFeedback] Raw response:', response);
+
+    const feedback = response.choices[0]?.message?.content || '';
+    
+    return {
+      feedback,
+      suggestions: extractSuggestions(feedback),
+      score: Math.floor(Math.random() * 40) + 60 // Mock score 60-100
+    };
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    throw new Error('Failed to get critic feedback');
+  }
+}
+
+// Transcription function
+export async function transcribeAudio(audioBuffer: Buffer, filename: string): Promise<string> {
+  try {
+    // Create a File-like object for OpenAI API
+    const file = new File([audioBuffer], filename, { 
+      type: filename.includes('.wav') ? 'audio/wav' : 
+            filename.includes('.mp3') ? 'audio/mp3' : 
+            filename.includes('.mp4') ? 'audio/mp4' : 
+            filename.includes('.webm') ? 'audio/webm' : 'audio/wav'
+    });
+
+    // First attempt with original format
+    try {
+      const res1 = await openai.audio.transcriptions.create({ 
+        file: file, 
+        model: 'gpt-4o-transcribe', 
+        response_format: 'json' as any 
+      });
+      const text1 = (res1 as any)?.text || (res1 as any)?.data?.text || '';
+      if (String(text1 || '').trim()) return String(text1).trim();
+    } catch (e) {
+      // Continue to fallback if needed
+    }
+
+    // If original format fails and it's not already WAV, the frontend should convert
+    // For backend, we'll just try once with the provided format
+    const res2 = await openai.audio.transcriptions.create({ 
+      file: file, 
+      model: 'gpt-4o-transcribe', 
+      response_format: 'json' as any 
+    });
+    const text2 = (res2 as any)?.text || (res2 as any)?.data?.text || '';
+    return String(text2 || '').trim();
+  } catch (error) {
+    console.error('OpenAI transcription error:', error);
+    throw new Error('Failed to transcribe audio');
   }
 }

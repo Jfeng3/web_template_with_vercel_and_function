@@ -58,3 +58,22 @@ Uses Zustand for global state management instead of React useState hooks. The gl
 1. **Keep it simple** - No over-engineering
 2. **Minimal changes** - Only implement what's requested
 3. **No complex abstractions** - Direct, straightforward code
+
+## Linear Project Management
+
+### Creating Tickets
+When creating Linear tickets:
+- Always add tickets to the **"engineering/product development"** project
+- Set status as **Todo** (not Backlog)
+- Use `mcp__linear__create_issue` with project parameter: `"engineering/product development"`
+
+### Listing Tickets
+When listing tickets:
+- Search within the **"engineering/product development"** project
+- Filter by status **Todo** to show active work items
+- Use `mcp__linear__list_issues` with project: `"engineering/product development"` and state: `"Todo"`
+
+### Available Projects
+- `"engineering/product development"` - Main development work
+- `"customer development/b2b sales"` - Sales and customer work  
+- `"model improvement"` - AI/ML model improvements

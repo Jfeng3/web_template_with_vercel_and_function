@@ -1,10 +1,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { getPhraseBank } from './openai-service.js';
 
-export default async function handler(
+const handler = async (
   req: VercelRequest,
   res: VercelResponse
-) {
+) => {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -48,4 +48,6 @@ export default async function handler(
       message: 'Failed to process phrase bank request'
     });
   }
-}
+};
+
+export default handler;
