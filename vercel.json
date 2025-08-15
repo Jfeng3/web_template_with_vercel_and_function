@@ -3,5 +3,10 @@
     "api/**/*.ts": {
       "runtime": "@vercel/node@3.2.17"
     }
-  }
+  },
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "vite",
+  "nodeVersion": "20.x"
 }
