@@ -26,13 +26,6 @@ const handler = async (
       });
     }
 
-    // Validate rephrased if provided
-    if (rephrased !== undefined && typeof rephrased !== 'string') {
-      return res.status(400).json({ 
-        error: 'Invalid request: rephrased must be a string if provided' 
-      });
-    }
-
     // Call OpenAI service
     const suggestions = await getPhraseBank(original, rephrased);
     
@@ -41,12 +34,8 @@ const handler = async (
   } catch (error) {
     console.error('Phrase bank endpoint error:', error);
     
-    // Return appropriate error message
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    res.status(500).json({ 
-      error: errorMessage,
-      message: 'Failed to process phrase bank request'
-    });
+    // Return empty suggestions on error
+    res.status(200).json({ suggestions: [] });
   }
 };
 
